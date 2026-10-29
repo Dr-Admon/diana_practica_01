@@ -1,0 +1,984 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ascenso Controlado · EulerGames</title>
+  <style>
+    :root{
+      --bg:#06131f;
+      --panel:#0b2233;
+      --panel2:#0e2d42;
+      --line:#2b6d89;
+      --text:#eaf7ff;
+      --muted:#9cc4d6;
+      --accent:#5dd6ff;
+      --accent2:#8ef7c7;
+      --warn:#ffd166;
+      --bad:#ff6b6b;
+      --good:#5dffb0;
+      --shadow:rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;
+      background:
+        radial-gradient(circle at 25% 0%, rgba(30,120,160,.35), transparent 32rem),
+        linear-gradient(180deg,#04101b 0%,#071827 45%,#04101b 100%);
+      color:var(--text);
+      min-height:100vh;
+      overflow-x:hidden;
+    }
+    body.success-glow{animation:goodGlow 1.2s ease-out 1}
+    body.fail-glow{animation:badGlow 1.2s ease-out 1}
+    @keyframes goodGlow{0%{box-shadow:inset 0 0 0 rgba(93,255,176,0)}45%{box-shadow:inset 0 0 130px rgba(93,255,176,.32)}100%{box-shadow:inset 0 0 0 rgba(93,255,176,0)}}
+    @keyframes badGlow{0%{box-shadow:inset 0 0 0 rgba(255,107,107,0)}45%{box-shadow:inset 0 0 130px rgba(255,107,107,.28)}100%{box-shadow:inset 0 0 0 rgba(255,107,107,0)}}
+    .wrap{max-width:1320px;margin:0 auto;padding:18px 18px 26px}
+    header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:14px}
+    .title h1{margin:0;font-size:clamp(28px,4vw,46px);letter-spacing:.4px}
+    .title p{margin:3px 0 0;color:var(--muted);font-size:15px}
+    .brand{padding:9px 12px;border:1px solid rgba(141,232,255,.25);border-radius:999px;color:#b9ecff;background:rgba(6,26,40,.7);font-size:13px;white-space:nowrap}
+    .layout{display:grid;grid-template-columns:285px minmax(430px,1fr) 315px;gap:14px;align-items:start}
+    .panel{
+      background:linear-gradient(180deg,rgba(14,45,66,.94),rgba(7,25,39,.94));
+      border:1px solid rgba(117,205,232,.18);
+      border-radius:18px;
+      box-shadow:0 18px 42px var(--shadow);
+      overflow:hidden;
+    }
+    .panel h2{font-size:15px;text-transform:uppercase;letter-spacing:.12em;margin:0;padding:14px 16px;color:#bfefff;border-bottom:1px solid rgba(117,205,232,.15);background:rgba(2,10,18,.18)}
+    .panel .body{padding:14px 16px}
+    .data-grid{display:grid;gap:9px}
+    .data-row{display:flex;justify-content:space-between;gap:10px;align-items:baseline;border-bottom:1px dashed rgba(160,220,240,.13);padding-bottom:7px}
+    .data-row:last-child{border-bottom:0;padding-bottom:0}
+    .label{color:var(--muted);font-size:13px}
+    .value{font-weight:700;color:#f6fdff;text-align:right;font-variant-numeric:tabular-nums}
+    .hint{margin-top:12px;border-radius:14px;padding:11px 12px;background:rgba(93,214,255,.08);border:1px solid rgba(93,214,255,.14);color:#c5eaf6;font-size:13px;line-height:1.35}
+    .sim-panel{position:relative;padding:0;min-height:620px}
+    #simCanvas{display:block;width:100%;height:620px;background:#04111e}
+    .hud{
+      position:absolute;left:16px;top:16px;right:16px;display:flex;justify-content:space-between;gap:10px;pointer-events:none;
+    }
+    .pill{background:rgba(1,12,21,.62);border:1px solid rgba(117,205,232,.20);backdrop-filter:blur(6px);border-radius:14px;padding:9px 11px;color:#e9fbff;min-width:112px;box-shadow:0 10px 24px rgba(0,0,0,.18)}
+    .pill small{display:block;color:#96c5d7;font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px}
+    .pill b{font-size:17px;font-variant-numeric:tabular-nums}
+    .controls .body{display:grid;gap:14px}
+    .profile-box{border-radius:16px;background:rgba(1,14,24,.42);border:1px solid rgba(117,205,232,.16);padding:10px}
+    #profileCanvas{display:block;width:100%;height:150px;border-radius:12px;background:linear-gradient(180deg,rgba(5,22,36,.92),rgba(2,12,22,.94))}
+    .knob-zone{text-align:center;border-radius:16px;background:rgba(1,14,24,.42);border:1px solid rgba(117,205,232,.16);padding:14px 12px}
+    .knob-label{color:var(--muted);font-size:13px;margin-bottom:6px}
+    .pressure-value{font-size:32px;font-weight:900;letter-spacing:.2px;margin:2px 0 10px;color:#d8fbff;font-variant-numeric:tabular-nums}
+    .knob{
+      width:148px;height:148px;margin:0 auto 12px;border-radius:50%;position:relative;cursor:pointer;touch-action:none;
+      background:
+        radial-gradient(circle at 50% 52%, #17394d 0 42%, transparent 43%),
+        conic-gradient(from 225deg, var(--accent) 0deg, var(--accent2) var(--knob-angle, 120deg), rgba(160,220,240,.13) var(--knob-angle, 120deg) 270deg, transparent 270deg 360deg),
+        radial-gradient(circle at 35% 25%, rgba(255,255,255,.16), transparent 32%),
+        #0a2030;
+      box-shadow:inset 0 0 22px rgba(0,0,0,.35), 0 10px 24px rgba(0,0,0,.25);
+      border:1px solid rgba(180,240,255,.18);
+    }
+    .knob:before{content:"";position:absolute;inset:18px;border-radius:50%;background:linear-gradient(145deg,#12334a,#071b2a);border:1px solid rgba(255,255,255,.1)}
+    .needle{position:absolute;left:50%;top:50%;width:5px;height:52px;background:#f4fbff;border-radius:999px;transform-origin:50% 84%;transform:translate(-50%,-84%) rotate(var(--needle-rot,-135deg));box-shadow:0 0 12px rgba(93,214,255,.8)}
+    .knob-center{position:absolute;left:50%;top:50%;width:28px;height:28px;border-radius:50%;background:#d9fbff;transform:translate(-50%,-50%);box-shadow:0 0 18px rgba(93,214,255,.6)}
+    .step-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:4px}
+    button{
+      border:0;border-radius:13px;padding:10px 10px;background:linear-gradient(180deg,#17415c,#0d2b42);color:#eafcff;font-weight:800;cursor:pointer;
+      box-shadow:0 8px 18px rgba(0,0,0,.20);border:1px solid rgba(117,205,232,.22);
+    }
+    button:hover{filter:brightness(1.12)}
+    button:active{transform:translateY(1px)}
+    button:disabled{opacity:.45;cursor:not-allowed;filter:saturate(.5)}
+    .primary{background:linear-gradient(180deg,#14a6d8,#0b6387);font-size:15px;padding:12px 10px}
+    .secondary{background:linear-gradient(180deg,#1b4b61,#0c2c3e)}
+    .danger{background:linear-gradient(180deg,#8f3942,#4d2028)}
+    .action-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+    .action-grid .primary{grid-column:1/-1}
+    .telemetry{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .tile{border-radius:14px;padding:10px;background:rgba(255,255,255,.045);border:1px solid rgba(117,205,232,.12)}
+    .tile span{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px}
+    .tile b{font-size:18px;font-variant-numeric:tabular-nums}
+    .result-card{margin-top:12px;border-radius:16px;border:1px solid rgba(255,255,255,.14);background:rgba(2,12,20,.62);padding:12px;line-height:1.35;display:none}
+    .result-card.show{display:block}
+    .result-card.good{border-color:rgba(93,255,176,.4);box-shadow:0 0 0 1px rgba(93,255,176,.08), inset 0 0 36px rgba(93,255,176,.08)}
+    .result-card.bad{border-color:rgba(255,107,107,.42);box-shadow:0 0 0 1px rgba(255,107,107,.08), inset 0 0 36px rgba(255,107,107,.07)}
+    .result-title{font-size:18px;font-weight:900;margin-bottom:5px}
+    .graph-panel{margin-top:14px}
+    #graphCanvas{display:block;width:100%;height:260px;background:linear-gradient(180deg,rgba(7,28,43,.9),rgba(3,14,24,.95));border-radius:0 0 18px 18px}
+    .legend{display:flex;gap:12px;flex-wrap:wrap;color:#b9ddea;font-size:12px;margin-top:9px}
+    .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;background:#fff}
+    .dot.depth{background:#5dd6ff}.dot.water{background:#8ef7c7}.dot.pressure{background:#ffd166}
+    .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:1px 5px;color:#dff8ff}
+    @media (max-width:1050px){.layout{grid-template-columns:1fr}.sim-panel{min-height:560px}#simCanvas{height:560px}.controls{order:2}.mission{order:1}.center{order:3}header{align-items:flex-start;flex-direction:column}.brand{white-space:normal}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="title">
+        <h1>Ascenso Controlado</h1>
+        <p>Programa la presión de soplado para que el submarino emerja dentro de la ventana de tiempo.</p>
+      </div>
+      <div class="brand">EulerGames · Física con decisiones</div>
+    </header>
+
+    <main class="layout">
+      <section class="panel mission">
+        <h2>Datos de misión</h2>
+        <div class="body">
+          <div class="data-grid">
+            <div class="data-row"><span class="label">Profundidad inicial</span><span class="value" id="mDepth">—</span></div>
+            <div class="data-row"><span class="label">Ventana de emersión</span><span class="value" id="mWindow">—</span></div>
+            <div class="data-row"><span class="label">Velocidad máxima</span><span class="value" id="mSafeVel">—</span></div>
+            <div class="data-row"><span class="label">Masa seca</span><span class="value" id="mDryMass">—</span></div>
+            <div class="data-row"><span class="label">Agua inicial en tanques</span><span class="value" id="mWater">—</span></div>
+            <div class="data-row"><span class="label">Volumen desplazado</span><span class="value" id="mVolume">—</span></div>
+            <div class="data-row"><span class="label">Densidad del agua</span><span class="value" id="mRho">—</span></div>
+            <div class="data-row"><span class="label">Presión fija al fondo</span><span class="value" id="mPStart">—</span></div>
+            <div class="data-row"><span class="label">Capacidad de soplado</span><span class="value" id="mBlow">—</span></div>
+          </div>
+          <div class="hint">
+            Ajusta sólo la presión final del perfil. El punto inicial está fijado por la presión del agua en el fondo más una pequeña sobrepresión de arranque.
+          </div>
+        </div>
+      </section>
+
+      <section class="center">
+        <div class="panel sim-panel">
+          <canvas id="simCanvas"></canvas>
+          <div class="hud">
+            <div class="pill"><small>Tiempo</small><b id="hudTime">0.0 s</b></div>
+            <div class="pill"><small>Profundidad</small><b id="hudDepth">— m</b></div>
+            <div class="pill"><small>Agua</small><b id="hudWater">—%</b></div>
+          </div>
+        </div>
+
+        <section class="panel graph-panel">
+          <h2>Respuesta del sistema</h2>
+          <canvas id="graphCanvas"></canvas>
+          <div class="body" style="padding-top:0">
+            <div class="legend">
+              <span><i class="dot depth"></i>Profundidad</span>
+              <span><i class="dot water"></i>Agua en tanques</span>
+              <span><i class="dot pressure"></i>Presión de soplado</span>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <section class="panel controls">
+        <h2>Sintetizador de presión</h2>
+        <div class="body">
+          <div class="profile-box">
+            <canvas id="profileCanvas"></canvas>
+          </div>
+
+          <div class="knob-zone">
+            <div class="knob-label">Presión final de soplado</div>
+            <div class="pressure-value" id="pressureValue">— atm</div>
+            <div class="knob" id="pressureKnob" aria-label="Perilla de presión final" role="slider">
+              <div class="needle"></div>
+              <div class="knob-center"></div>
+            </div>
+            <div class="step-grid">
+              <button id="decBig">−0.20</button>
+              <button id="decSmall">−0.05</button>
+              <button id="incSmall">+0.05</button>
+              <button id="incBig">+0.20</button>
+            </div>
+            <div class="hint" style="margin-top:10px;text-align:left">
+              Teclado: <span class="kbd">←</span>/<span class="kbd">→</span> ajuste grueso, <span class="kbd">↑</span>/<span class="kbd">↓</span> ajuste fino.
+            </div>
+          </div>
+
+          <div class="telemetry">
+            <div class="tile"><span>Presión externa</span><b id="tPext">—</b></div>
+            <div class="tile"><span>Presión gas</span><b id="tPgas">—</b></div>
+            <div class="tile"><span>Caudal</span><b id="tFlow">—</b></div>
+            <div class="tile"><span>Velocidad</span><b id="tVel">—</b></div>
+          </div>
+
+          <div class="action-grid">
+            <button class="primary" id="startBtn">Iniciar ascenso</button>
+            <button class="secondary" id="retryBtn">Volver a intentar</button>
+            <button class="secondary" id="newBtn">Nueva misión</button>
+            <button class="secondary" id="soundBtn">Sonido: encendido</button>
+          </div>
+
+          <div class="result-card" id="resultCard"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+<script>
+(() => {
+  'use strict';
+
+  const ATM = 101325;
+  const G = 9.81;
+  const FIXED_DT = 1/120;
+
+  const $ = (id) => document.getElementById(id);
+  const simCanvas = $('simCanvas');
+  const graphCanvas = $('graphCanvas');
+  const profileCanvas = $('profileCanvas');
+  const simCtx = simCanvas.getContext('2d');
+  const graphCtx = graphCanvas.getContext('2d');
+  const profileCtx = profileCanvas.getContext('2d');
+
+  const el = {
+    mDepth:$('mDepth'), mWindow:$('mWindow'), mSafeVel:$('mSafeVel'), mDryMass:$('mDryMass'),
+    mWater:$('mWater'), mVolume:$('mVolume'), mRho:$('mRho'), mPStart:$('mPStart'), mBlow:$('mBlow'),
+    hudTime:$('hudTime'), hudDepth:$('hudDepth'), hudWater:$('hudWater'),
+    pressureValue:$('pressureValue'), knob:$('pressureKnob'),
+    tPext:$('tPext'), tPgas:$('tPgas'), tFlow:$('tFlow'), tVel:$('tVel'),
+    startBtn:$('startBtn'), retryBtn:$('retryBtn'), newBtn:$('newBtn'), soundBtn:$('soundBtn'),
+    decBig:$('decBig'), decSmall:$('decSmall'), incSmall:$('incSmall'), incBig:$('incBig'),
+    resultCard:$('resultCard')
+  };
+
+  let mission = null;
+  let state = null;
+  let lastTs = null;
+  let accumulator = 0;
+  let running = false;
+  let soundOn = true;
+  let pFinal = 2.0;
+  let resultDelay = 0;
+
+  function rand(a,b){ return a + Math.random()*(b-a); }
+  function rint(a,b){ return Math.round(rand(a,b)); }
+  function clamp(x,a,b){ return Math.max(a, Math.min(b, x)); }
+  function fmt(x,d=1){ return Number.isFinite(x) ? x.toFixed(d) : '—'; }
+  function kg(x){ return Math.round(x).toLocaleString('es-MX'); }
+
+  function setCanvasSize(canvas, ctx, cssW, cssH){
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+    const rect = canvas.getBoundingClientRect();
+    const w = cssW || rect.width || 600;
+    const h = cssH || rect.height || 400;
+    canvas.width = Math.round(w*dpr);
+    canvas.height = Math.round(h*dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+
+  function resizeAll(){
+    setCanvasSize(simCanvas, simCtx);
+    setCanvasSize(graphCanvas, graphCtx);
+    setCanvasSize(profileCanvas, profileCtx);
+    drawAll();
+  }
+
+  function pExtAtDepth(m, depth){
+    return 1 + (m.rho * G * Math.max(0, depth)) / ATM;
+  }
+
+  function gasPressureAtDepth(m, finalPressure, depth){
+    const progress = clamp((m.depth0 - depth) / m.depth0, 0, 1);
+    return m.pStart + (finalPressure - m.pStart) * progress;
+  }
+
+  function simulate(m, finalPressure, record=false){
+    let t = 0;
+    let depth = m.depth0;
+    let v = m.initialVelocity;
+    let water = m.waterInitial;
+    let lastRec = -1;
+    const data = [];
+    let result = { emerged:false, time:null, finalVel:null, maxVel:0, waterFinal:water, data, reason:'no_emerge' };
+
+    const maxTime = Math.max(70, m.timeMax + 35);
+    const maxDepth = m.depth0 + 30;
+
+    function snapshot(){
+      const pext = pExtAtDepth(m, depth);
+      const pgas = gasPressureAtDepth(m, finalPressure, depth);
+      data.push({t, depth:Math.max(0,depth), v, water, pext, pgas});
+    }
+    if(record) snapshot();
+
+    while(t < maxTime){
+      const prev = {t, depth, v, water};
+      const pext = pExtAtDepth(m, depth);
+      const pgas = gasPressureAtDepth(m, finalPressure, depth);
+      const dp = Math.max(0, pgas - pext);
+      let flow = m.blowCoeff * Math.sqrt(dp);
+      flow = Math.min(flow, water / FIXED_DT);
+      water = Math.max(0, water - flow * FIXED_DT);
+
+      const mass = m.dryMass + water;
+      const buoy = m.rho * G * m.volume;
+      const weight = mass * G;
+      const drag = m.dragCoeff * v * Math.abs(v);
+      const net = buoy - weight - drag;
+      const a = net / mass;
+
+      v += a * FIXED_DT;
+      depth -= v * FIXED_DT;
+      t += FIXED_DT;
+      result.maxVel = Math.max(result.maxVel, Math.abs(v));
+
+      if(record && (t - lastRec >= 0.11)){ lastRec = t; snapshot(); }
+
+      if(depth <= 0){
+        const span = prev.depth - depth;
+        const f = span > 0 ? clamp(prev.depth / span, 0, 1) : 1;
+        const finalT = prev.t + FIXED_DT * f;
+        const finalV = prev.v + (v - prev.v) * f;
+        const finalWater = prev.water + (water - prev.water) * f;
+        result = { emerged:true, time:finalT, finalVel:finalV, maxVel:result.maxVel, waterFinal:finalWater, data, reason:'emerged' };
+        if(record){
+          data.push({t:finalT, depth:0, v:finalV, water:finalWater, pext:pExtAtDepth(m,0), pgas:gasPressureAtDepth(m,finalPressure,0)});
+        }
+        return result;
+      }
+      if(depth > maxDepth && t > 5){
+        result = { emerged:false, time:t, finalVel:v, maxVel:result.maxVel, waterFinal:water, data, reason:'sank' };
+        return result;
+      }
+    }
+    result = { emerged:false, time:t, finalVel:v, maxVel:result.maxVel, waterFinal:water, data, reason:'late' };
+    return result;
+  }
+
+  function isSuccess(m, res){
+    return res.emerged && res.time >= m.timeMin && res.time <= m.timeMax && Math.abs(res.finalVel) <= m.safeVel;
+  }
+
+  function scanSuccessRange(m){
+    const ok = [];
+    const step = 0.01;
+    for(let p=m.pMin; p<=m.pMax+1e-9; p+=step){
+      const r = simulate(m,p,false);
+      if(isSuccess(m,r)) ok.push(p);
+    }
+    if(!ok.length) return null;
+    return {min:ok[0], max:ok[ok.length-1], width:ok[ok.length-1]-ok[0], count:ok.length};
+  }
+
+  function buildMission(){
+    for(let attempt=0; attempt<400; attempt++){
+      const depth0 = rand(55, 115);
+      const rho = rand(1005, 1030);
+      const dryMass = rand(42000, 92000);
+      const waterInitial = rand(2600, 7600);
+      const neutralWater = waterInitial * rand(0.42, 0.72);
+      const volume = (dryMass + neutralWater) / rho;
+      const pextBottom = 1 + (rho * G * depth0) / ATM;
+      const overPressure = rand(0.16, 0.40);
+      const pStart = pextBottom + overPressure;
+      const pMin = 1.05;
+      const pMax = Math.min(5.8, Math.max(2.25, pStart - 0.30));
+      const blowCoeff = rand(90, 190);
+      const dragCoeff = rand(2600, 7600);
+      const safeVel = rand(2.4, 4.4);
+      const initialVelocity = rand(0.0, 0.18);
+
+      let m = {depth0,rho,dryMass,waterInitial,neutralWater,volume,pextBottom,overPressure,pStart,pMin,pMax,blowCoeff,dragCoeff,safeVel,initialVelocity,timeMin:0,timeMax:0,range:null};
+
+      const candidates = [];
+      for(let p=pMin; p<=pMax+1e-9; p+=0.04){
+        const r = simulate(m,p,false);
+        if(r.emerged && Math.abs(r.finalVel) <= safeVel && r.time >= 14 && r.time <= 48){
+          candidates.push({p,t:r.time,v:r.finalVel});
+        }
+      }
+      if(candidates.length < 8) continue;
+
+      const c = candidates[Math.floor(candidates.length*rand(0.28,0.72))];
+      const halfWindow = rand(2.6, 4.2);
+      m.timeMin = Math.max(8, c.t - halfWindow);
+      m.timeMax = c.t + halfWindow;
+      const range = scanSuccessRange(m);
+      if(range && range.width >= 0.10 && range.width <= 2.60){
+        m.range = range;
+        m.id = Math.random().toString(36).slice(2,8).toUpperCase();
+        return m;
+      }
+    }
+
+    // Fallback, rarely used.
+    const depth0 = 80, rho = 1025, dryMass = 65000, waterInitial = 5200;
+    const neutralWater = 3200;
+    const volume = (dryMass + neutralWater) / rho;
+    const pextBottom = 1 + (rho*G*depth0)/ATM;
+    let m = {depth0,rho,dryMass,waterInitial,neutralWater,volume,pextBottom,overPressure:.25,pStart:pextBottom+.25,pMin:1.05,pMax:5.2,blowCoeff:135,dragCoeff:4600,safeVel:3.3,initialVelocity:.05,timeMin:22,timeMax:29,range:null,id:'BASE'};
+    m.range = scanSuccessRange(m) || {min:2.0,max:2.7,width:.7,count:70};
+    return m;
+  }
+
+  function newMission(){
+    mission = buildMission();
+    pFinal = clamp(rand(mission.pMin, mission.pMax), mission.pMin, mission.pMax);
+    state = null;
+    running = false;
+    accumulator = 0;
+    lastTs = null;
+    resultDelay = 0;
+    el.resultCard.className = 'result-card';
+    el.resultCard.innerHTML = '';
+    updateMissionUI();
+    updatePressureUI();
+    clearGraph();
+    drawAll();
+    setButtons(false);
+  }
+
+  function resetSameMission(){
+    state = null;
+    running = false;
+    accumulator = 0;
+    lastTs = null;
+    resultDelay = 0;
+    el.resultCard.className = 'result-card';
+    el.resultCard.innerHTML = '';
+    updateTelemetryIdle();
+    clearGraph();
+    drawAll();
+    setButtons(false);
+  }
+
+  function updateMissionUI(){
+    el.mDepth.textContent = `${fmt(mission.depth0,1)} m`;
+    el.mWindow.textContent = `${fmt(mission.timeMin,1)} a ${fmt(mission.timeMax,1)} s`;
+    el.mSafeVel.textContent = `≤ ${fmt(mission.safeVel,1)} m/s`;
+    el.mDryMass.textContent = `${kg(mission.dryMass)} kg`;
+    el.mWater.textContent = `${kg(mission.waterInitial)} kg`;
+    el.mVolume.textContent = `${fmt(mission.volume,1)} m³`;
+    el.mRho.textContent = `${fmt(mission.rho,0)} kg/m³`;
+    el.mPStart.textContent = `${fmt(mission.pStart,2)} atm`;
+    el.mBlow.textContent = `${fmt(mission.blowCoeff,0)} kg/s√atm`;
+    updateTelemetryIdle();
+  }
+
+  function updateTelemetryIdle(){
+    if(!mission) return;
+    el.hudTime.textContent = `0.0 s`;
+    el.hudDepth.textContent = `${fmt(mission.depth0,1)} m`;
+    el.hudWater.textContent = `100%`;
+    const pext = pExtAtDepth(mission, mission.depth0);
+    const pgas = gasPressureAtDepth(mission, pFinal, mission.depth0);
+    el.tPext.textContent = `${fmt(pext,2)} atm`;
+    el.tPgas.textContent = `${fmt(pgas,2)} atm`;
+    el.tFlow.textContent = `—`;
+    el.tVel.textContent = `0.0 m/s`;
+  }
+
+  function updatePressureUI(){
+    if(!mission) return;
+    pFinal = clamp(pFinal, mission.pMin, mission.pMax);
+    el.pressureValue.textContent = `${fmt(pFinal,2)} atm`;
+    const frac = (pFinal - mission.pMin) / (mission.pMax - mission.pMin);
+    const sweep = 270 * frac;
+    const rot = -135 + sweep;
+    el.knob.style.setProperty('--knob-angle', `${sweep}deg`);
+    el.knob.style.setProperty('--needle-rot', `${rot}deg`);
+    el.knob.setAttribute('aria-valuemin', fmt(mission.pMin,2));
+    el.knob.setAttribute('aria-valuemax', fmt(mission.pMax,2));
+    el.knob.setAttribute('aria-valuenow', fmt(pFinal,2));
+    updateTelemetryIdle();
+    drawProfile();
+  }
+
+  function adjustPressure(delta){
+    if(running) return;
+    pFinal = clamp(Math.round((pFinal + delta)*100)/100, mission.pMin, mission.pMax);
+    updatePressureUI();
+    drawAll();
+  }
+
+  function setButtons(isRunning){
+    el.startBtn.disabled = isRunning;
+    el.retryBtn.disabled = isRunning;
+    el.newBtn.disabled = isRunning;
+    [el.decBig,el.decSmall,el.incSmall,el.incBig].forEach(b => b.disabled = isRunning);
+  }
+
+  function start(){
+    if(running || !mission) return;
+    const now = performance.now();
+    lastTs = now;
+    accumulator = 0;
+    state = {
+      t:0,
+      depth:mission.depth0,
+      v:mission.initialVelocity,
+      water:mission.waterInitial,
+      pext:pExtAtDepth(mission,mission.depth0),
+      pgas:gasPressureAtDepth(mission,pFinal,mission.depth0),
+      flow:0,
+      a:0,
+      data:[],
+      done:false,
+      result:null,
+      lastRec:-1
+    };
+    state.data.push({t:0, depth:state.depth, v:state.v, water:state.water, pext:state.pext, pgas:state.pgas});
+    el.resultCard.className = 'result-card';
+    el.resultCard.innerHTML = '';
+    running = true;
+    setButtons(true);
+    requestAnimationFrame(loop);
+  }
+
+  function loop(ts){
+    if(!running) return;
+    if(lastTs === null) lastTs = ts;
+    let frameDt = (ts - lastTs) / 1000;
+    lastTs = ts;
+    frameDt = Math.min(frameDt, 0.08);
+    accumulator += frameDt;
+    while(accumulator >= FIXED_DT && running){
+      stepPhysics(FIXED_DT);
+      accumulator -= FIXED_DT;
+    }
+    drawAll();
+    if(running) requestAnimationFrame(loop);
+  }
+
+  function stepPhysics(dt){
+    const m = mission;
+    const s = state;
+    const prev = {t:s.t, depth:s.depth, v:s.v, water:s.water};
+
+    s.pext = pExtAtDepth(m, s.depth);
+    s.pgas = gasPressureAtDepth(m, pFinal, s.depth);
+    const dp = Math.max(0, s.pgas - s.pext);
+    s.flow = Math.min(m.blowCoeff * Math.sqrt(dp), s.water / dt);
+    s.water = Math.max(0, s.water - s.flow*dt);
+
+    const mass = m.dryMass + s.water;
+    const buoy = m.rho * G * m.volume;
+    const weight = mass * G;
+    const drag = m.dragCoeff * s.v * Math.abs(s.v);
+    s.a = (buoy - weight - drag) / mass;
+    s.v += s.a * dt;
+    s.depth -= s.v * dt;
+    s.t += dt;
+
+    if(s.t - s.lastRec >= 0.1){
+      s.lastRec = s.t;
+      s.data.push({t:s.t, depth:Math.max(0,s.depth), v:s.v, water:s.water, pext:s.pext, pgas:s.pgas});
+    }
+
+    if(s.depth <= 0){
+      const span = prev.depth - s.depth;
+      const f = span > 0 ? clamp(prev.depth/span, 0, 1) : 1;
+      const finalT = prev.t + dt*f;
+      const finalV = prev.v + (s.v-prev.v)*f;
+      const finalWater = prev.water + (s.water-prev.water)*f;
+      s.depth = 0;
+      s.t = finalT;
+      s.v = finalV;
+      s.water = finalWater;
+      s.data.push({t:s.t, depth:0, v:s.v, water:s.water, pext:pExtAtDepth(m,0), pgas:gasPressureAtDepth(m,pFinal,0)});
+      finish({emerged:true,time:s.t,finalVel:s.v,waterFinal:s.water,data:s.data,reason:'emerged'});
+      return;
+    }
+
+    if(s.depth > m.depth0 + 30 && s.t > 5){
+      finish({emerged:false,time:s.t,finalVel:s.v,waterFinal:s.water,data:s.data,reason:'sank'});
+      return;
+    }
+
+    if(s.t > Math.max(70, m.timeMax + 35)){
+      finish({emerged:false,time:s.t,finalVel:s.v,waterFinal:s.water,data:s.data,reason:'late'});
+      return;
+    }
+
+    updateLiveTelemetry();
+  }
+
+  function updateLiveTelemetry(){
+    if(!state || !mission) return;
+    el.hudTime.textContent = `${fmt(state.t,1)} s`;
+    el.hudDepth.textContent = `${fmt(Math.max(0,state.depth),1)} m`;
+    el.hudWater.textContent = `${fmt(100*state.water/mission.waterInitial,0)}%`;
+    el.tPext.textContent = `${fmt(state.pext,2)} atm`;
+    el.tPgas.textContent = `${fmt(state.pgas,2)} atm`;
+    el.tFlow.textContent = `${fmt(state.flow,0)} kg/s`;
+    el.tVel.textContent = `${fmt(state.v,2)} m/s ↑`;
+  }
+
+  function finish(res){
+    running = false;
+    setButtons(false);
+    state.result = res;
+    updateLiveTelemetry();
+    drawAll();
+    drawGraph(res.data);
+    resultDelay = window.setTimeout(() => showResult(res), 900);
+  }
+
+  function showResult(res){
+    const success = isSuccess(mission,res);
+    const waterPct = 100 * res.waterFinal / mission.waterInitial;
+    let title = success ? 'Emersión dentro de la ventana' : 'Emersión fuera de condición';
+    let reason = '';
+    if(!res.emerged){
+      title = res.reason === 'sank' ? 'El submarino perdió el ascenso' : 'No emergió a tiempo';
+      reason = res.reason === 'sank' ? 'La masa siguió siendo demasiado alta para sostener un ascenso.' : 'La presión final no expulsó agua suficiente para cumplir la ventana.';
+    } else if(Math.abs(res.finalVel) > mission.safeVel){
+      reason = 'La velocidad de salida superó el límite de seguridad.';
+    } else if(res.time < mission.timeMin){
+      reason = 'Salió demasiado pronto: la presión final fue demasiado agresiva para esta misión.';
+    } else if(res.time > mission.timeMax){
+      reason = 'Salió demasiado tarde: el soplado fue insuficiente o demasiado conservador.';
+    } else {
+      reason = 'El perfil logró reducir masa suficiente sin adelantar ni atrasar la emersión.';
+    }
+
+    const range = mission.range;
+    const rangeText = range ? `${fmt(range.min,2)} a ${fmt(range.max,2)} atm` : 'no disponible';
+    el.resultCard.className = `result-card show ${success ? 'good':'bad'}`;
+    el.resultCard.innerHTML = `
+      <div class="result-title">${title}</div>
+      <div>${reason}</div>
+      <div style="margin-top:9px;color:#cfeef8">
+        <b>Tu presión final:</b> ${fmt(pFinal,2)} atm<br>
+        <b>Tiempo de emersión:</b> ${res.emerged ? fmt(res.time,2)+' s' : 'no emergió'}<br>
+        <b>Velocidad de salida:</b> ${res.emerged ? fmt(Math.abs(res.finalVel),2)+' m/s' : '—'}<br>
+        <b>Agua restante:</b> ${fmt(waterPct,1)}%<br>
+        <b>Rango aproximado de éxito:</b> ${rangeText}
+      </div>`;
+    document.body.classList.remove('success-glow','fail-glow');
+    void document.body.offsetWidth;
+    document.body.classList.add(success ? 'success-glow':'fail-glow');
+    if(success) playGood(); else playImpact();
+  }
+
+  function drawAll(){
+    drawSim();
+    drawProfile();
+    if(state && state.data && state.data.length > 1) drawGraph(state.data);
+  }
+
+  function depthToY(depth){
+    const h = simCanvas.getBoundingClientRect().height || 620;
+    const top = 70;
+    const bottom = h - 72;
+    const scaleMax = mission ? mission.depth0 : 100;
+    return top + (depth / scaleMax) * (bottom - top);
+  }
+
+  function drawSim(){
+    const w = simCanvas.getBoundingClientRect().width || 700;
+    const h = simCanvas.getBoundingClientRect().height || 620;
+    simCtx.clearRect(0,0,w,h);
+    const g = simCtx.createLinearGradient(0,0,0,h);
+    g.addColorStop(0,'#0f4963');
+    g.addColorStop(.18,'#0a334f');
+    g.addColorStop(.65,'#051a2e');
+    g.addColorStop(1,'#02101e');
+    simCtx.fillStyle = g;
+    simCtx.fillRect(0,0,w,h);
+
+    // light rays
+    simCtx.save();
+    simCtx.globalAlpha = .16;
+    for(let i=0;i<8;i++){
+      simCtx.beginPath();
+      simCtx.moveTo(70+i*120,0);
+      simCtx.lineTo(10+i*80,h);
+      simCtx.lineWidth = 24;
+      simCtx.strokeStyle = '#8eeaff';
+      simCtx.stroke();
+    }
+    simCtx.restore();
+
+    // surface
+    const surfaceY = depthToY(0);
+    simCtx.strokeStyle = 'rgba(190,245,255,.85)';
+    simCtx.lineWidth = 3;
+    simCtx.beginPath();
+    for(let x=0; x<=w; x+=12){
+      const y = surfaceY + Math.sin(x*.035 + (state?state.t*.9:0))*3;
+      if(x===0) simCtx.moveTo(x,y); else simCtx.lineTo(x,y);
+    }
+    simCtx.stroke();
+    simCtx.fillStyle = 'rgba(220,255,255,.12)';
+    simCtx.fillRect(0,0,w,surfaceY+5);
+
+    // depth ruler
+    simCtx.save();
+    simCtx.translate(42,0);
+    simCtx.strokeStyle = 'rgba(204,240,255,.45)';
+    simCtx.fillStyle = 'rgba(220,245,255,.75)';
+    simCtx.font = '12px ui-monospace, monospace';
+    simCtx.textAlign = 'left';
+    const maxD = mission ? mission.depth0 : 100;
+    for(let d=0; d<=maxD+1; d+=10){
+      const y = depthToY(d);
+      simCtx.beginPath(); simCtx.moveTo(0,y); simCtx.lineTo(d%20===0?22:12,y); simCtx.stroke();
+      if(d%20===0) simCtx.fillText(`${d} m`, 28, y+4);
+    }
+    simCtx.restore();
+
+    // time window marker near top
+    simCtx.fillStyle = 'rgba(255,209,102,.1)';
+    simCtx.fillRect(w-126, surfaceY+8, 96, 34);
+    simCtx.strokeStyle = 'rgba(255,209,102,.35)';
+    simCtx.strokeRect(w-126, surfaceY+8, 96, 34);
+    simCtx.fillStyle = 'rgba(255,231,170,.95)';
+    simCtx.font = '12px system-ui';
+    simCtx.textAlign = 'center';
+    if(mission) simCtx.fillText(`${fmt(mission.timeMin,1)}–${fmt(mission.timeMax,1)} s`, w-78, surfaceY+29);
+
+    const depth = state ? state.depth : (mission ? mission.depth0 : 80);
+    const waterPct = state && mission ? state.water/mission.waterInitial : 1;
+    const y = depthToY(clamp(depth,0, mission?mission.depth0:100));
+    const x = w*0.52;
+    drawSubmarine(x,y,waterPct);
+
+    // bubbles depending on flow
+    if(state && running && state.flow > 1){
+      simCtx.save();
+      simCtx.globalAlpha = clamp(state.flow/260, .15, .75);
+      for(let i=0;i<16;i++){
+        const bx = x - 80 + Math.random()*160;
+        const by = y + 18 + Math.random()*34;
+        const r = 2 + Math.random()*5;
+        simCtx.beginPath(); simCtx.arc(bx,by,r,0,Math.PI*2); simCtx.strokeStyle = 'rgba(190,245,255,.85)'; simCtx.stroke();
+      }
+      simCtx.restore();
+    }
+  }
+
+  function drawSubmarine(x,y,waterPct){
+    const ctx = simCtx;
+    const bodyW = 170, bodyH = 48;
+    ctx.save();
+    ctx.translate(x,y);
+    // shadow
+    ctx.fillStyle = 'rgba(0,0,0,.22)';
+    ctx.beginPath(); ctx.ellipse(0,52,95,18,0,0,Math.PI*2); ctx.fill();
+    // body
+    const hull = ctx.createLinearGradient(0,-bodyH/2,0,bodyH/2);
+    hull.addColorStop(0,'#8ad2e7'); hull.addColorStop(.5,'#2f89a8'); hull.addColorStop(1,'#14506e');
+    ctx.fillStyle = hull;
+    ctx.beginPath(); ctx.ellipse(0,0,bodyW/2,bodyH/2,0,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle = 'rgba(230,255,255,.55)'; ctx.lineWidth = 2; ctx.stroke();
+    // nose shine
+    ctx.fillStyle = 'rgba(255,255,255,.18)';
+    ctx.beginPath(); ctx.ellipse(-32,-12,42,8,-0.1,0,Math.PI*2); ctx.fill();
+    // tail
+    ctx.fillStyle = '#1a5d7e';
+    ctx.beginPath(); ctx.moveTo(-82,0); ctx.lineTo(-118,-26); ctx.lineTo(-108,0); ctx.lineTo(-118,26); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(230,255,255,.4)'; ctx.stroke();
+    // conning tower
+    ctx.fillStyle = '#2e8bae';
+    ctx.roundRect(-20,-48,44,36,9); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#c7f6ff';
+    for(let i=-44;i<=48;i+=30){ ctx.beginPath(); ctx.arc(i,-2,7,0,Math.PI*2); ctx.fill(); }
+    // ballast tank indicator
+    ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.roundRect(-58,22,116,10,5); ctx.fill();
+    ctx.fillStyle = waterPct > .55 ? '#75d7ff' : waterPct > .22 ? '#8ef7c7' : '#ffd166';
+    ctx.roundRect(-56,24,112*clamp(waterPct,0,1),6,4); ctx.fill();
+    // label
+    ctx.fillStyle = 'rgba(230,255,255,.88)'; ctx.font = '12px ui-monospace, monospace'; ctx.textAlign = 'center';
+    ctx.fillText('LASTRE',0,47);
+    ctx.restore();
+  }
+
+  function drawProfile(){
+    if(!mission) return;
+    const w = profileCanvas.getBoundingClientRect().width || 280;
+    const h = profileCanvas.getBoundingClientRect().height || 150;
+    profileCtx.clearRect(0,0,w,h);
+    profileCtx.fillStyle = 'rgba(1,10,18,.86)';
+    profileCtx.fillRect(0,0,w,h);
+    const pad = {l:34,r:16,t:18,b:26};
+    const minP = 1;
+    const maxP = Math.max(mission.pStart, mission.pMax, pFinal) + .4;
+    const xP = p => pad.l + (p-minP)/(maxP-minP)*(w-pad.l-pad.r);
+    const yDepth = d => pad.t + (d/mission.depth0)*(h-pad.t-pad.b);
+    profileCtx.strokeStyle = 'rgba(180,235,250,.15)'; profileCtx.lineWidth = 1;
+    for(let i=0;i<=4;i++){
+      const y = pad.t + i/4*(h-pad.t-pad.b);
+      profileCtx.beginPath(); profileCtx.moveTo(pad.l,y); profileCtx.lineTo(w-pad.r,y); profileCtx.stroke();
+    }
+    // external pressure line
+    profileCtx.strokeStyle = 'rgba(93,214,255,.8)'; profileCtx.lineWidth = 2;
+    profileCtx.beginPath();
+    for(let i=0;i<=60;i++){
+      const d = mission.depth0*i/60;
+      const x = xP(pExtAtDepth(mission,d));
+      const y = yDepth(d);
+      if(i===0) profileCtx.moveTo(x,y); else profileCtx.lineTo(x,y);
+    }
+    profileCtx.stroke();
+    // gas pressure line
+    profileCtx.strokeStyle = 'rgba(255,209,102,.95)'; profileCtx.lineWidth = 3;
+    profileCtx.beginPath();
+    profileCtx.moveTo(xP(pFinal), yDepth(0));
+    profileCtx.lineTo(xP(mission.pStart), yDepth(mission.depth0));
+    profileCtx.stroke();
+    // dots
+    profileCtx.fillStyle = '#ffd166';
+    profileCtx.beginPath(); profileCtx.arc(xP(pFinal), yDepth(0), 5,0,Math.PI*2); profileCtx.fill();
+    profileCtx.fillStyle = '#eaf7ff';
+    profileCtx.beginPath(); profileCtx.arc(xP(mission.pStart), yDepth(mission.depth0), 4,0,Math.PI*2); profileCtx.fill();
+    profileCtx.fillStyle = 'rgba(232,250,255,.9)'; profileCtx.font='11px system-ui'; profileCtx.textAlign='left';
+    profileCtx.fillText('superficie', pad.l, 12);
+    profileCtx.fillText('fondo', pad.l, h-8);
+    profileCtx.textAlign='right';
+    profileCtx.fillText('gas', w-18, 26);
+    profileCtx.fillStyle = 'rgba(93,214,255,.92)';
+    profileCtx.fillText('agua', w-18, 42);
+    profileCtx.strokeStyle='rgba(200,240,255,.35)'; profileCtx.strokeRect(pad.l,pad.t,w-pad.l-pad.r,h-pad.t-pad.b);
+  }
+
+  function clearGraph(){
+    const w = graphCanvas.getBoundingClientRect().width || 700;
+    const h = graphCanvas.getBoundingClientRect().height || 260;
+    graphCtx.clearRect(0,0,w,h);
+    graphCtx.fillStyle = 'rgba(4,17,30,.75)'; graphCtx.fillRect(0,0,w,h);
+    graphCtx.fillStyle = 'rgba(180,220,235,.55)'; graphCtx.font = '14px system-ui'; graphCtx.textAlign = 'center';
+    graphCtx.fillText('La respuesta aparecerá al iniciar el ascenso.', w/2, h/2);
+  }
+
+  function drawGraph(data){
+    const w = graphCanvas.getBoundingClientRect().width || 700;
+    const h = graphCanvas.getBoundingClientRect().height || 260;
+    graphCtx.clearRect(0,0,w,h);
+    graphCtx.fillStyle = 'rgba(3,15,27,.95)'; graphCtx.fillRect(0,0,w,h);
+    if(!data || data.length < 2 || !mission){ clearGraph(); return; }
+    const pad = {l:54,r:46,t:22,b:42};
+    const tMax = Math.max(mission.timeMax+3, data[data.length-1].t, 10);
+    const xT = t => pad.l + t/tMax*(w-pad.l-pad.r);
+    const yDepth = d => pad.t + d/mission.depth0*(h-pad.t-pad.b);
+    const yPct = p => pad.t + (1-p)*(h-pad.t-pad.b);
+    graphCtx.strokeStyle = 'rgba(190,235,250,.14)'; graphCtx.lineWidth=1;
+    graphCtx.fillStyle = 'rgba(205,238,248,.65)'; graphCtx.font='11px ui-monospace, monospace'; graphCtx.textAlign='center';
+    for(let i=0;i<=5;i++){
+      const x = pad.l + i/5*(w-pad.l-pad.r);
+      graphCtx.beginPath(); graphCtx.moveTo(x,pad.t); graphCtx.lineTo(x,h-pad.b); graphCtx.stroke();
+      graphCtx.fillText(fmt(tMax*i/5,0),x,h-18);
+    }
+    graphCtx.textAlign='right';
+    for(let i=0;i<=4;i++){
+      const y = pad.t + i/4*(h-pad.t-pad.b);
+      graphCtx.beginPath(); graphCtx.moveTo(pad.l,y); graphCtx.lineTo(w-pad.r,y); graphCtx.stroke();
+      graphCtx.fillText(fmt(mission.depth0*i/4,0),pad.l-8,y+4);
+    }
+    // time window
+    graphCtx.fillStyle='rgba(255,209,102,.08)';
+    const wx1=xT(mission.timeMin), wx2=xT(mission.timeMax);
+    graphCtx.fillRect(wx1,pad.t,wx2-wx1,h-pad.t-pad.b);
+    graphCtx.strokeStyle='rgba(255,209,102,.35)';
+    graphCtx.strokeRect(wx1,pad.t,wx2-wx1,h-pad.t-pad.b);
+
+    // depth line
+    graphCtx.strokeStyle='#5dd6ff'; graphCtx.lineWidth=3; graphCtx.beginPath();
+    data.forEach((p,i)=>{ const x=xT(p.t), y=yDepth(p.depth); if(i===0) graphCtx.moveTo(x,y); else graphCtx.lineTo(x,y); }); graphCtx.stroke();
+    // water pct line
+    graphCtx.strokeStyle='#8ef7c7'; graphCtx.lineWidth=2; graphCtx.beginPath();
+    data.forEach((p,i)=>{ const x=xT(p.t), y=yPct(p.water/mission.waterInitial); if(i===0) graphCtx.moveTo(x,y); else graphCtx.lineTo(x,y); }); graphCtx.stroke();
+    // pressure pct line normalized between pMin and pStart
+    const pSpan = Math.max(0.1, mission.pStart - 1);
+    graphCtx.strokeStyle='#ffd166'; graphCtx.lineWidth=2; graphCtx.beginPath();
+    data.forEach((p,i)=>{ const frac=clamp((p.pgas-1)/pSpan,0,1); const x=xT(p.t), y=yPct(frac); if(i===0) graphCtx.moveTo(x,y); else graphCtx.lineTo(x,y); }); graphCtx.stroke();
+
+    graphCtx.strokeStyle='rgba(210,245,255,.32)'; graphCtx.strokeRect(pad.l,pad.t,w-pad.l-pad.r,h-pad.t-pad.b);
+    graphCtx.fillStyle='rgba(220,245,255,.75)'; graphCtx.font='12px system-ui';
+    graphCtx.textAlign='center'; graphCtx.fillText('tiempo (s)', w/2, h-6);
+    graphCtx.save(); graphCtx.translate(16,h/2); graphCtx.rotate(-Math.PI/2); graphCtx.fillText('profundidad (m)',0,0); graphCtx.restore();
+    graphCtx.textAlign='right'; graphCtx.fillText('% / presión relativa', w-8, 16);
+  }
+
+  function playImpact(){
+    if(!soundOn) return;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return;
+    const ctx = new AC();
+    const now = ctx.currentTime;
+    const master = ctx.createGain(); master.connect(ctx.destination); master.gain.value = 0.18;
+    const osc = ctx.createOscillator(); const gain = ctx.createGain();
+    osc.type='sawtooth'; osc.frequency.setValueAtTime(95,now); osc.frequency.exponentialRampToValueAtTime(35,now+.38);
+    gain.gain.setValueAtTime(0.8,now); gain.gain.exponentialRampToValueAtTime(0.001,now+.45);
+    osc.connect(gain); gain.connect(master); osc.start(now); osc.stop(now+.5);
+    const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate*.22, ctx.sampleRate);
+    const data = noiseBuffer.getChannelData(0);
+    for(let i=0;i<data.length;i++) data[i]=(Math.random()*2-1)*(1-i/data.length);
+    const noise = ctx.createBufferSource(); noise.buffer=noiseBuffer;
+    const nf = ctx.createBiquadFilter(); nf.type='lowpass'; nf.frequency.value=450;
+    const ng = ctx.createGain(); ng.gain.setValueAtTime(.7,now); ng.gain.exponentialRampToValueAtTime(.001,now+.23);
+    noise.connect(nf); nf.connect(ng); ng.connect(master); noise.start(now); noise.stop(now+.24);
+    setTimeout(()=>ctx.close(),900);
+  }
+
+  function playGood(){
+    if(!soundOn) return;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return;
+    const ctx = new AC();
+    const now = ctx.currentTime;
+    const master = ctx.createGain(); master.connect(ctx.destination); master.gain.value = 0.15;
+    [392,523,659].forEach((f,i)=>{
+      const osc=ctx.createOscillator(); const g=ctx.createGain();
+      osc.type='sine'; osc.frequency.value=f;
+      g.gain.setValueAtTime(0.001,now+i*.09);
+      g.gain.linearRampToValueAtTime(.65,now+i*.09+.025);
+      g.gain.exponentialRampToValueAtTime(.001,now+i*.09+.28);
+      osc.connect(g); g.connect(master); osc.start(now+i*.09); osc.stop(now+i*.09+.32);
+    });
+    setTimeout(()=>ctx.close(),900);
+  }
+
+  el.decBig.addEventListener('click',()=>adjustPressure(-0.20));
+  el.decSmall.addEventListener('click',()=>adjustPressure(-0.05));
+  el.incSmall.addEventListener('click',()=>adjustPressure(0.05));
+  el.incBig.addEventListener('click',()=>adjustPressure(0.20));
+  el.startBtn.addEventListener('click',start);
+  el.retryBtn.addEventListener('click',resetSameMission);
+  el.newBtn.addEventListener('click',newMission);
+  el.soundBtn.addEventListener('click',()=>{ soundOn=!soundOn; el.soundBtn.textContent = `Sonido: ${soundOn?'encendido':'apagado'}`; });
+
+  window.addEventListener('keydown',(e)=>{
+    if(!mission || running) return;
+    if(e.key === 'ArrowLeft'){ e.preventDefault(); adjustPressure(-0.20); }
+    if(e.key === 'ArrowRight'){ e.preventDefault(); adjustPressure(0.20); }
+    if(e.key === 'ArrowDown'){ e.preventDefault(); adjustPressure(-0.05); }
+    if(e.key === 'ArrowUp'){ e.preventDefault(); adjustPressure(0.05); }
+    if(e.key === 'Enter'){ e.preventDefault(); start(); }
+  });
+
+  let dragging = false;
+  function setFromPointer(ev){
+    if(!mission || running) return;
+    const rect = el.knob.getBoundingClientRect();
+    const cx = rect.left + rect.width/2;
+    const cy = rect.top + rect.height/2;
+    const dx = ev.clientX - cx;
+    const dy = ev.clientY - cy;
+    let deg = Math.atan2(dy,dx)*180/Math.PI + 90;
+    if(deg < -180) deg += 360;
+    // Map usable arc from -135 to +135 degrees.
+    let clamped = clamp(deg, -135, 135);
+    const frac = (clamped + 135)/270;
+    pFinal = mission.pMin + frac*(mission.pMax-mission.pMin);
+    pFinal = Math.round(pFinal*100)/100;
+    updatePressureUI();
+    drawAll();
+  }
+  el.knob.addEventListener('pointerdown',(ev)=>{ dragging=true; el.knob.setPointerCapture(ev.pointerId); setFromPointer(ev); });
+  el.knob.addEventListener('pointermove',(ev)=>{ if(dragging) setFromPointer(ev); });
+  el.knob.addEventListener('pointerup',()=>{ dragging=false; });
+  el.knob.addEventListener('pointercancel',()=>{ dragging=false; });
+
+  if(!CanvasRenderingContext2D.prototype.roundRect){
+    CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r){
+      r = Math.min(r, w/2, h/2);
+      this.beginPath(); this.moveTo(x+r,y); this.arcTo(x+w,y,x+w,y+h,r); this.arcTo(x+w,y+h,x,y+h,r); this.arcTo(x,y+h,x,y,r); this.arcTo(x,y,x+w,y,r); this.closePath(); return this;
+    };
+  }
+
+  window.addEventListener('resize',resizeAll);
+  resizeAll();
+  newMission();
+})();
+</script>
+</body>
+</html>
