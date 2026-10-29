@@ -1,984 +1,759 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Ascenso Controlado · EulerGames</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Práctica tipo EXANI-II | Porcentajes y operaciones</title>
   <style>
-    :root{
-      --bg:#06131f;
-      --panel:#0b2233;
-      --panel2:#0e2d42;
-      --line:#2b6d89;
-      --text:#eaf7ff;
-      --muted:#9cc4d6;
-      --accent:#5dd6ff;
-      --accent2:#8ef7c7;
-      --warn:#ffd166;
-      --bad:#ff6b6b;
-      --good:#5dffb0;
-      --shadow:rgba(0,0,0,.35);
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;
-      background:
-        radial-gradient(circle at 25% 0%, rgba(30,120,160,.35), transparent 32rem),
-        linear-gradient(180deg,#04101b 0%,#071827 45%,#04101b 100%);
-      color:var(--text);
-      min-height:100vh;
-      overflow-x:hidden;
-    }
-    body.success-glow{animation:goodGlow 1.2s ease-out 1}
-    body.fail-glow{animation:badGlow 1.2s ease-out 1}
-    @keyframes goodGlow{0%{box-shadow:inset 0 0 0 rgba(93,255,176,0)}45%{box-shadow:inset 0 0 130px rgba(93,255,176,.32)}100%{box-shadow:inset 0 0 0 rgba(93,255,176,0)}}
-    @keyframes badGlow{0%{box-shadow:inset 0 0 0 rgba(255,107,107,0)}45%{box-shadow:inset 0 0 130px rgba(255,107,107,.28)}100%{box-shadow:inset 0 0 0 rgba(255,107,107,0)}}
-    .wrap{max-width:1320px;margin:0 auto;padding:18px 18px 26px}
-    header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:14px}
-    .title h1{margin:0;font-size:clamp(28px,4vw,46px);letter-spacing:.4px}
-    .title p{margin:3px 0 0;color:var(--muted);font-size:15px}
-    .brand{padding:9px 12px;border:1px solid rgba(141,232,255,.25);border-radius:999px;color:#b9ecff;background:rgba(6,26,40,.7);font-size:13px;white-space:nowrap}
-    .layout{display:grid;grid-template-columns:285px minmax(430px,1fr) 315px;gap:14px;align-items:start}
-    .panel{
-      background:linear-gradient(180deg,rgba(14,45,66,.94),rgba(7,25,39,.94));
-      border:1px solid rgba(117,205,232,.18);
-      border-radius:18px;
-      box-shadow:0 18px 42px var(--shadow);
-      overflow:hidden;
-    }
-    .panel h2{font-size:15px;text-transform:uppercase;letter-spacing:.12em;margin:0;padding:14px 16px;color:#bfefff;border-bottom:1px solid rgba(117,205,232,.15);background:rgba(2,10,18,.18)}
-    .panel .body{padding:14px 16px}
-    .data-grid{display:grid;gap:9px}
-    .data-row{display:flex;justify-content:space-between;gap:10px;align-items:baseline;border-bottom:1px dashed rgba(160,220,240,.13);padding-bottom:7px}
-    .data-row:last-child{border-bottom:0;padding-bottom:0}
-    .label{color:var(--muted);font-size:13px}
-    .value{font-weight:700;color:#f6fdff;text-align:right;font-variant-numeric:tabular-nums}
-    .hint{margin-top:12px;border-radius:14px;padding:11px 12px;background:rgba(93,214,255,.08);border:1px solid rgba(93,214,255,.14);color:#c5eaf6;font-size:13px;line-height:1.35}
-    .sim-panel{position:relative;padding:0;min-height:620px}
-    #simCanvas{display:block;width:100%;height:620px;background:#04111e}
-    .hud{
-      position:absolute;left:16px;top:16px;right:16px;display:flex;justify-content:space-between;gap:10px;pointer-events:none;
-    }
-    .pill{background:rgba(1,12,21,.62);border:1px solid rgba(117,205,232,.20);backdrop-filter:blur(6px);border-radius:14px;padding:9px 11px;color:#e9fbff;min-width:112px;box-shadow:0 10px 24px rgba(0,0,0,.18)}
-    .pill small{display:block;color:#96c5d7;font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px}
-    .pill b{font-size:17px;font-variant-numeric:tabular-nums}
-    .controls .body{display:grid;gap:14px}
-    .profile-box{border-radius:16px;background:rgba(1,14,24,.42);border:1px solid rgba(117,205,232,.16);padding:10px}
-    #profileCanvas{display:block;width:100%;height:150px;border-radius:12px;background:linear-gradient(180deg,rgba(5,22,36,.92),rgba(2,12,22,.94))}
-    .knob-zone{text-align:center;border-radius:16px;background:rgba(1,14,24,.42);border:1px solid rgba(117,205,232,.16);padding:14px 12px}
-    .knob-label{color:var(--muted);font-size:13px;margin-bottom:6px}
-    .pressure-value{font-size:32px;font-weight:900;letter-spacing:.2px;margin:2px 0 10px;color:#d8fbff;font-variant-numeric:tabular-nums}
-    .knob{
-      width:148px;height:148px;margin:0 auto 12px;border-radius:50%;position:relative;cursor:pointer;touch-action:none;
-      background:
-        radial-gradient(circle at 50% 52%, #17394d 0 42%, transparent 43%),
-        conic-gradient(from 225deg, var(--accent) 0deg, var(--accent2) var(--knob-angle, 120deg), rgba(160,220,240,.13) var(--knob-angle, 120deg) 270deg, transparent 270deg 360deg),
-        radial-gradient(circle at 35% 25%, rgba(255,255,255,.16), transparent 32%),
-        #0a2030;
-      box-shadow:inset 0 0 22px rgba(0,0,0,.35), 0 10px 24px rgba(0,0,0,.25);
-      border:1px solid rgba(180,240,255,.18);
-    }
-    .knob:before{content:"";position:absolute;inset:18px;border-radius:50%;background:linear-gradient(145deg,#12334a,#071b2a);border:1px solid rgba(255,255,255,.1)}
-    .needle{position:absolute;left:50%;top:50%;width:5px;height:52px;background:#f4fbff;border-radius:999px;transform-origin:50% 84%;transform:translate(-50%,-84%) rotate(var(--needle-rot,-135deg));box-shadow:0 0 12px rgba(93,214,255,.8)}
-    .knob-center{position:absolute;left:50%;top:50%;width:28px;height:28px;border-radius:50%;background:#d9fbff;transform:translate(-50%,-50%);box-shadow:0 0 18px rgba(93,214,255,.6)}
-    .step-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:4px}
-    button{
-      border:0;border-radius:13px;padding:10px 10px;background:linear-gradient(180deg,#17415c,#0d2b42);color:#eafcff;font-weight:800;cursor:pointer;
-      box-shadow:0 8px 18px rgba(0,0,0,.20);border:1px solid rgba(117,205,232,.22);
-    }
-    button:hover{filter:brightness(1.12)}
-    button:active{transform:translateY(1px)}
-    button:disabled{opacity:.45;cursor:not-allowed;filter:saturate(.5)}
-    .primary{background:linear-gradient(180deg,#14a6d8,#0b6387);font-size:15px;padding:12px 10px}
-    .secondary{background:linear-gradient(180deg,#1b4b61,#0c2c3e)}
-    .danger{background:linear-gradient(180deg,#8f3942,#4d2028)}
-    .action-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-    .action-grid .primary{grid-column:1/-1}
-    .telemetry{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-    .tile{border-radius:14px;padding:10px;background:rgba(255,255,255,.045);border:1px solid rgba(117,205,232,.12)}
-    .tile span{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px}
-    .tile b{font-size:18px;font-variant-numeric:tabular-nums}
-    .result-card{margin-top:12px;border-radius:16px;border:1px solid rgba(255,255,255,.14);background:rgba(2,12,20,.62);padding:12px;line-height:1.35;display:none}
-    .result-card.show{display:block}
-    .result-card.good{border-color:rgba(93,255,176,.4);box-shadow:0 0 0 1px rgba(93,255,176,.08), inset 0 0 36px rgba(93,255,176,.08)}
-    .result-card.bad{border-color:rgba(255,107,107,.42);box-shadow:0 0 0 1px rgba(255,107,107,.08), inset 0 0 36px rgba(255,107,107,.07)}
-    .result-title{font-size:18px;font-weight:900;margin-bottom:5px}
-    .graph-panel{margin-top:14px}
-    #graphCanvas{display:block;width:100%;height:260px;background:linear-gradient(180deg,rgba(7,28,43,.9),rgba(3,14,24,.95));border-radius:0 0 18px 18px}
-    .legend{display:flex;gap:12px;flex-wrap:wrap;color:#b9ddea;font-size:12px;margin-top:9px}
-    .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;background:#fff}
-    .dot.depth{background:#5dd6ff}.dot.water{background:#8ef7c7}.dot.pressure{background:#ffd166}
-    .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:1px 5px;color:#dff8ff}
-    @media (max-width:1050px){.layout{grid-template-columns:1fr}.sim-panel{min-height:560px}#simCanvas{height:560px}.controls{order:2}.mission{order:1}.center{order:3}header{align-items:flex-start;flex-direction:column}.brand{white-space:normal}}
+    :root { --ink:#182c42; --secondary:#526579; --primary:#175a91; --primary-dark:#12446f;
+      --light:#e9f3fa; --border:#d7e3ec; --paper:#fff; --bg:#f4f7fb;
+      --green:#11724f; --green-bg:#e7f6ed; --red:#b13a43; --red-bg:#fcecef;
+      --orange:#a75a06; --orange-bg:#fff0d5; --shadow:0 8px 30px rgba(31,70,110,.08); }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif; }
+    button { font:inherit; cursor:pointer; }
+    button:focus-visible, input:focus-visible, summary:focus-visible { outline:3px solid #ffae5b; outline-offset:3px; }
+    button:disabled { cursor:not-allowed; opacity:.48; }
+    .wrap { max-width:1110px; margin:0 auto; padding:27px 20px 50px; }
+    .top { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:24px; }
+    .brand { display:flex; align-items:center; gap:12px; }
+    .mark { width:44px; height:44px; border-radius:14px; color:white; display:grid; place-items:center;
+      background:linear-gradient(140deg,#155a90,#2392a2); font-size:22px; font-weight:800; }
+    .brand-name { font-size:17px; line-height:1.2; font-weight:800; }
+    .brand-sub { font-size:13px; color:var(--secondary); }
+    .pill { border:1px solid #bfd6e6; color:#225b86; background:#eaf4fb; border-radius:999px; padding:5px 12px; font-size:13px; font-weight:750; }
+    h1 { line-height:1.12; font-size:clamp(29px,4.2vw,46px); letter-spacing:-.045em; margin:10px 0 17px; }
+    h2 { line-height:1.2; margin:0 0 15px; font-size:23px; letter-spacing:-.025em; }
+    p { margin:0 0 15px; }
+    .lead { max-width:720px; color:var(--secondary); font-size:18px; }
+    .panel { background:var(--paper); border:1px solid var(--border); border-radius:20px; padding:27px; box-shadow:var(--shadow); }
+    .hero { padding:43px 42px; background:linear-gradient(132deg,#fff 60%,#eaf5fc); }
+    .hero-tag { display:inline-flex; border-radius:6px; font-weight:750; letter-spacing:.07em; text-transform:uppercase; color:#276080; font-size:12px; }
+    .stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:30px 0 25px; }
+    .stat { background:#fff; padding:16px 17px; border:1px solid var(--border); border-radius:14px; }
+    .stat strong { font-size:25px; display:block; line-height:1.25; font-variant-numeric:tabular-nums; }
+    .stat small { font-size:13px; color:var(--secondary); }
+    .actions { display:flex; align-items:center; gap:11px; flex-wrap:wrap; }
+    .student-field { margin:25px 0 18px; max-width:490px; }
+    .student-field label { display:block; font-weight:780; margin-bottom:7px; }
+    .student-field input { width:100%; padding:12px 14px; font:inherit; font-size:16px;
+      color:var(--ink); border:1px solid #9ab4c8; border-radius:10px; background:white; }
+    .student-field .note { margin:6px 0 0; }
+    .result-identity { color:var(--secondary); margin:-4px auto 13px; font-size:14px; overflow-wrap:anywhere; }
+    .btn { padding:12px 20px; font-weight:750; border-radius:12px; border:1px solid var(--border);
+      background:white; color:var(--ink); transition:background .12s,transform .12s; }
+    .btn:hover:not(:disabled) { background:#f3f8fc; }
+    .btn:active:not(:disabled) { transform:translateY(1px); }
+    .btn.primary { background:var(--primary); color:white; border-color:var(--primary); }
+    .btn.primary:hover:not(:disabled) { background:var(--primary-dark); }
+    .btn.danger { color:#9a343e; border-color:#ebc1c4; }
+    .note { color:var(--secondary); font-size:13px; }
+    .instruction { padding-left:20px; margin:18px 0 24px; color:var(--secondary); }
+    .instruction li { padding:3px 0; }
+    .exam-top { display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:15px; }
+    .exam-top-title { font-size:14px; font-weight:800; text-transform:uppercase; color:var(--secondary); letter-spacing:.06em; }
+    .time { display:flex; align-items:center; gap:9px; padding:10px 16px; background:#edf6fc; border:1px solid #c7e1ef; border-radius:12px; }
+    .time span:first-child { font-size:14px; font-weight:700; }
+    .time strong { font-size:26px; line-height:1; font-variant-numeric:tabular-nums; letter-spacing:.04em; }
+    .time.warn { background:var(--orange-bg); color:var(--orange); border-color:#f2d29d; }
+    .time.critical { background:var(--red-bg); color:var(--red); border-color:#f0b8be; }
+    .bar { background:#e2edf5; border-radius:999px; height:10px; overflow:hidden; margin:14px 0 9px; }
+    .bar > div { background:linear-gradient(90deg,#1475a3,#22a68e); height:100%; transition:width .2s; }
+    .progress-meta { display:flex; justify-content:space-between; gap:10px; color:var(--secondary); font-size:13px; }
+    .exam-grid { display:grid; grid-template-columns:minmax(0,1fr) 280px; gap:20px; margin-top:18px; align-items:start; }
+    .question-top { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:20px; }
+    .question-num { font-size:13px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--secondary); }
+    .tag { background:#edf5fa; border:1px solid #d5e8f3; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:800; color:#1d648b; }
+    .prompt { font-size:clamp(18px,2.6vw,22px); line-height:1.5; font-weight:650; margin:0 0 25px; }
+    .choices { display:grid; gap:10px; margin-bottom:28px; }
+    .choice { width:100%; min-height:66px; display:flex; align-items:center; gap:14px; text-align:left; padding:12px 17px;
+      border:2px solid var(--border); border-radius:13px; background:#fff; color:var(--ink); }
+    .choice:hover { border-color:#9cbfd7; background:#f7fbff; }
+    .choice.selected { border-color:var(--primary); background:#ebf5fd; box-shadow:0 0 0 1px var(--primary) inset; }
+    .letter { flex:none; width:35px; height:35px; display:grid; place-items:center; border:1px solid #cbdce8;
+      border-radius:9px; background:#f1f7fb; font-weight:850; }
+    .choice.selected .letter { background:var(--primary); color:white; border-color:var(--primary); }
+    .choice .value { font-size:18px; font-weight:700; }
+    .question-bottom { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; padding-top:18px; border-top:1px solid var(--border); }
+    .sidebar { position:sticky; top:16px; }
+    .sidebar h3 { font-size:17px; margin:0 0 5px; }
+    .number-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin:18px 0; }
+    .jump { border:1px solid #d5e1ec; border-radius:9px; background:#f7fafd; color:#37536d; height:42px; font-weight:750; }
+    .jump.answered { background:var(--green-bg); border-color:#b5dec7; color:#116b4c; }
+    .jump.current { outline:2px solid var(--primary); outline-offset:1px; }
+    .legend { display:flex; flex-wrap:wrap; gap:12px; font-size:12px; color:var(--secondary); margin:15px 0 23px; }
+    .legend span { display:flex; align-items:center; gap:5px; }
+    .dot { width:10px; height:10px; border:1px solid #d5e1ec; border-radius:3px; background:#f7fafd; }
+    .dot.green { background:var(--green-bg); border-color:#b5dec7; }
+    .dot.blue { background:#eaf4fb; border:2px solid var(--primary); }
+    .sidebar .btn { width:100%; }
+    .result-head { text-align:center; padding:40px 25px; }
+    .eyebrow { font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:.08em; color:var(--secondary); }
+    .big-score { font-size:clamp(62px,11vw,98px); font-weight:850; line-height:1.1; letter-spacing:-.07em; margin:10px 0; color:var(--primary); }
+    .result-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:23px 0 26px; }
+    .result-stats .stat { background:#f7fbfe; }
+    .review-head { display:flex; align-items:center; justify-content:space-between; gap:15px; margin:24px 0 13px; flex-wrap:wrap; }
+    .review { display:grid; gap:10px; }
+    details.review-item { border:1px solid var(--border); background:white; border-radius:13px; overflow:hidden; }
+    details.review-item > summary { list-style:none; padding:16px 19px; cursor:pointer; display:flex; gap:15px; align-items:center; justify-content:space-between; }
+    details.review-item > summary::-webkit-details-marker { display:none; }
+    .review-status { flex:none; padding:3px 9px; border-radius:6px; font-size:12px; font-weight:800; }
+    .review-status.good { color:var(--green); background:var(--green-bg); }
+    .review-status.bad { color:var(--red); background:var(--red-bg); }
+    .review-status.blank { color:var(--orange); background:var(--orange-bg); }
+    .review-body { padding:0 19px 19px; border-top:1px solid #eef2f5; }
+    .review-body p { margin-top:13px; margin-bottom:10px; }
+    .review-body .solution { padding:12px 14px; background:#f0f6fa; border-radius:9px; font-size:14px; }
+    .review-value { font-weight:800; }
+    .green-txt { color:var(--green); }
+    .red-txt { color:var(--red); }
+    .overlay { position:fixed; inset:0; z-index:5; background:rgba(18,40,62,.52); display:grid; place-items:center; padding:22px; }
+    .modal { width:min(100%,480px); background:white; border-radius:19px; padding:27px; box-shadow:0 20px 70px #19324d55; }
+    .modal h2 { margin-bottom:12px; }
+    .modal .actions { margin-top:22px; justify-content:flex-end; }
+    .hidden { display:none !important; }
+    .sr-only { position:absolute!important; width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0; }
+    footer { text-align:center; margin-top:30px; font-size:12px; color:var(--secondary); }
+    @media(max-width:780px) { .exam-grid { grid-template-columns:1fr; } .sidebar { position:static; } .hero { padding:30px 24px; } .stats,.result-stats { grid-template-columns:repeat(2,1fr); } .panel { padding:21px; } }
+    @media(max-width:430px) { .wrap { padding:18px 12px 40px; } .top { margin-bottom:16px; } .brand-sub { font-size:11px; }
+      .time strong { font-size:22px; } .stat { padding:12px; } .stat strong { font-size:22px; } .hero { padding:28px 19px; }
+      .choice { min-height:60px; } .question-bottom .btn { padding:10px 13px; } .exam-top { align-items:flex-start; } }
+    @media print { body { background:white; } .no-print, .top, footer, .review-head button { display:none!important; }
+      .wrap { max-width:none; padding:0; } .result-head { padding:5px 0 14px; } details.review-item { break-inside:avoid; }
+      details.review-item > .review-body { display:block!important; } .review-item summary { padding:9px 14px; } .review-body { padding:0 14px 10px; } }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <div class="title">
-        <h1>Ascenso Controlado</h1>
-        <p>Programa la presión de soplado para que el submarino emerja dentro de la ventana de tiempo.</p>
-      </div>
-      <div class="brand">EulerGames · Física con decisiones</div>
+  <main class="wrap">
+    <header class="top">
+      <div class="brand"><div class="mark" aria-hidden="true">∑</div><div><div class="brand-name">Práctica matemática</div><div class="brand-sub">Porcentajes y operaciones · Estilo EXANI-II</div></div></div>
+      <span class="pill">Sin conexión a internet</span>
     </header>
-
-    <main class="layout">
-      <section class="panel mission">
-        <h2>Datos de misión</h2>
-        <div class="body">
-          <div class="data-grid">
-            <div class="data-row"><span class="label">Profundidad inicial</span><span class="value" id="mDepth">—</span></div>
-            <div class="data-row"><span class="label">Ventana de emersión</span><span class="value" id="mWindow">—</span></div>
-            <div class="data-row"><span class="label">Velocidad máxima</span><span class="value" id="mSafeVel">—</span></div>
-            <div class="data-row"><span class="label">Masa seca</span><span class="value" id="mDryMass">—</span></div>
-            <div class="data-row"><span class="label">Agua inicial en tanques</span><span class="value" id="mWater">—</span></div>
-            <div class="data-row"><span class="label">Volumen desplazado</span><span class="value" id="mVolume">—</span></div>
-            <div class="data-row"><span class="label">Densidad del agua</span><span class="value" id="mRho">—</span></div>
-            <div class="data-row"><span class="label">Presión fija al fondo</span><span class="value" id="mPStart">—</span></div>
-            <div class="data-row"><span class="label">Capacidad de soplado</span><span class="value" id="mBlow">—</span></div>
-          </div>
-          <div class="hint">
-            Ajusta sólo la presión final del perfil. El punto inicial está fijado por la presión del agua en el fondo más una pequeña sobrepresión de arranque.
-          </div>
+    <section id="welcome" class="panel hero hidden">
+      <span class="hero-tag">Simulador de práctica</span>
+      <h1>Porcentajes, multiplicación, división y jerarquía de operaciones</h1>
+      <p class="lead">Resuelve 20 preguntas de opción múltiple, con cuatro respuestas posibles. Algunas opciones representan errores de cálculo habituales.</p>
+      <div class="stats">
+        <div class="stat"><strong>20</strong><small>Preguntas por intento</small></div>
+        <div class="stat"><strong>20 min</strong><small>Tiempo máximo</small></div>
+        <div class="stat"><strong id="bank-count">240</strong><small>Reactivos en el banco</small></div>
+        <div class="stat"><strong>4</strong><small>Opciones por pregunta</small></div>
+      </div>
+      <h2>Antes de comenzar</h2>
+      <ul class="instruction">
+        <li>Se presentan 8 preguntas de porcentajes, 4 de multiplicación, 4 de división y 4 de jerarquía de operaciones.</li>
+        <li>Las preguntas y las opciones se mezclan en cada intento.</li>
+        <li>El tiempo inicia al pulsar <b>Comenzar examen</b>, no se puede pausar y continúa aunque cierres o recargues la pestaña.</li>
+        <li>Al terminar los 20 minutos, el examen se entrega automáticamente. Podrás revisar tus aciertos, errores y procedimientos.</li>
+        <li>Si un resultado tiene decimales, se expresa con hasta dos cifras decimales.</li>
+        <li>Al finalizar, podrás descargar un PDF con tu nombre, fecha, calificación, preguntas y respuestas.</li>
+      </ul>
+      <div class="student-field">
+        <label for="student-name">Nombre completo del estudiante</label>
+        <input type="text" id="student-name" name="student-name" maxlength="90" autocomplete="name"
+          placeholder="Escribe tu nombre completo" required>
+        <p class="note">El nombre aparecerá en tu reporte de resultados en PDF.</p>
+      </div>
+      <div class="actions"><button class="btn primary" id="start-btn">Comenzar examen</button></div>
+      <p class="note" style="margin-top:16px">Material de práctica independiente; no es un examen oficial del Ceneval.</p>
+    </section>
+    <section id="exam" class="hidden">
+      <div class="panel">
+        <div class="exam-top">
+          <div><div class="exam-top-title">Intento en curso</div><h2 style="margin:3px 0 0">Examen de aritmética</h2></div>
+          <div id="timer-box" class="time" role="timer" aria-label="Tiempo restante"><span>Tiempo restante</span><strong id="timer">20:00</strong></div>
         </div>
-      </section>
-
-      <section class="center">
-        <div class="panel sim-panel">
-          <canvas id="simCanvas"></canvas>
-          <div class="hud">
-            <div class="pill"><small>Tiempo</small><b id="hudTime">0.0 s</b></div>
-            <div class="pill"><small>Profundidad</small><b id="hudDepth">— m</b></div>
-            <div class="pill"><small>Agua</small><b id="hudWater">—%</b></div>
+        <div class="bar" aria-label="Avance de preguntas respondidas"><div id="progress-fill" style="width:0%"></div></div>
+        <div class="progress-meta"><span id="progress-text">0 de 20 respondidas</span><span id="pending-text">20 sin responder</span></div>
+      </div>
+      <div class="exam-grid">
+        <article class="panel" id="question-panel">
+          <div class="question-top"><span id="question-num" class="question-num">Pregunta 1 de 20</span><span id="question-topic" class="tag">Porcentajes</span></div>
+          <p id="question-text" class="prompt"></p>
+          <div class="choices" id="choices" role="radiogroup" aria-label="Opciones de respuesta"></div>
+          <div class="question-bottom">
+            <button class="btn" id="prev-btn">← Anterior</button>
+            <button class="btn primary" id="next-btn">Siguiente →</button>
           </div>
+        </article>
+        <aside class="panel sidebar no-print">
+          <h3>Ir a una pregunta</h3>
+          <p class="note">Puedes cambiar tu respuesta mientras haya tiempo.</p>
+          <div id="question-nav" class="number-grid" aria-label="Navegación entre preguntas"></div>
+          <div class="legend"><span><i class="dot green"></i>Respondida</span><span><i class="dot blue"></i>Actual</span><span><i class="dot"></i>Pendiente</span></div>
+          <button id="finish-btn" class="btn danger">Entregar examen</button>
+          <p class="note" style="margin-top:14px">Atajo: teclas A, B, C, D para responder; ← y → para navegar.</p>
+        </aside>
+      </div>
+    </section>
+    <section id="results" class="hidden">
+      <div class="panel result-head">
+        <div class="eyebrow">Resultado del intento</div>
+        <div class="big-score" id="result-score">0/100</div>
+        <p id="result-message" class="lead" style="margin-inline:auto"></p>
+        <p id="result-identity" class="result-identity"></p>
+        <div class="result-stats">
+          <div class="stat"><strong class="green-txt" id="result-correct">0</strong><small>Correctas</small></div>
+          <div class="stat"><strong class="red-txt" id="result-wrong">0</strong><small>Incorrectas</small></div>
+          <div class="stat"><strong id="result-blank">0</strong><small>Sin responder</small></div>
+          <div class="stat"><strong id="result-time">00:00</strong><small>Tiempo utilizado</small></div>
         </div>
-
-        <section class="panel graph-panel">
-          <h2>Respuesta del sistema</h2>
-          <canvas id="graphCanvas"></canvas>
-          <div class="body" style="padding-top:0">
-            <div class="legend">
-              <span><i class="dot depth"></i>Profundidad</span>
-              <span><i class="dot water"></i>Agua en tanques</span>
-              <span><i class="dot pressure"></i>Presión de soplado</span>
-            </div>
-          </div>
-        </section>
-      </section>
-
-      <section class="panel controls">
-        <h2>Sintetizador de presión</h2>
-        <div class="body">
-          <div class="profile-box">
-            <canvas id="profileCanvas"></canvas>
-          </div>
-
-          <div class="knob-zone">
-            <div class="knob-label">Presión final de soplado</div>
-            <div class="pressure-value" id="pressureValue">— atm</div>
-            <div class="knob" id="pressureKnob" aria-label="Perilla de presión final" role="slider">
-              <div class="needle"></div>
-              <div class="knob-center"></div>
-            </div>
-            <div class="step-grid">
-              <button id="decBig">−0.20</button>
-              <button id="decSmall">−0.05</button>
-              <button id="incSmall">+0.05</button>
-              <button id="incBig">+0.20</button>
-            </div>
-            <div class="hint" style="margin-top:10px;text-align:left">
-              Teclado: <span class="kbd">←</span>/<span class="kbd">→</span> ajuste grueso, <span class="kbd">↑</span>/<span class="kbd">↓</span> ajuste fino.
-            </div>
-          </div>
-
-          <div class="telemetry">
-            <div class="tile"><span>Presión externa</span><b id="tPext">—</b></div>
-            <div class="tile"><span>Presión gas</span><b id="tPgas">—</b></div>
-            <div class="tile"><span>Caudal</span><b id="tFlow">—</b></div>
-            <div class="tile"><span>Velocidad</span><b id="tVel">—</b></div>
-          </div>
-
-          <div class="action-grid">
-            <button class="primary" id="startBtn">Iniciar ascenso</button>
-            <button class="secondary" id="retryBtn">Volver a intentar</button>
-            <button class="secondary" id="newBtn">Nueva misión</button>
-            <button class="secondary" id="soundBtn">Sonido: encendido</button>
-          </div>
-
-          <div class="result-card" id="resultCard"></div>
+        <div class="actions" style="justify-content:center">
+          <button class="btn primary no-print" id="pdf-btn">Descargar PDF</button>
+          <button class="btn no-print" id="again-btn">Iniciar nuevo intento</button>
+          <button class="btn no-print" id="print-btn">Imprimir resultados</button>
         </div>
-      </section>
-    </main>
+        <p class="note no-print" style="margin:15px 0 0">Descarga tu PDF antes de comenzar otro intento; el nuevo intento reemplaza el resultado guardado.</p>
+      </div>
+      <div class="review-head"><h2 style="margin:0">Revisión de respuestas</h2><button class="btn no-print" id="toggle-review">Expandir todas</button></div>
+      <div id="review-list" class="review"></div>
+    </section>
+    <footer>Banco local de ejercicios con resultados calculados y verificados. Puntaje máximo: 100 puntos.</footer>
+  </main>
+  <div id="confirm-overlay" class="overlay hidden" role="presentation">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+      <h2 id="confirm-title">¿Entregar el examen?</h2>
+      <p id="confirm-description"></p>
+      <p class="note">Después de entregar, ya no podrás cambiar respuestas en este intento.</p>
+      <div class="actions"><button id="cancel-finish" class="btn">Seguir respondiendo</button><button id="confirm-finish" class="btn primary">Sí, entregar</button></div>
+    </div>
   </div>
-
-<script>
-(() => {
-  'use strict';
-
-  const ATM = 101325;
-  const G = 9.81;
-  const FIXED_DT = 1/120;
-
-  const $ = (id) => document.getElementById(id);
-  const simCanvas = $('simCanvas');
-  const graphCanvas = $('graphCanvas');
-  const profileCanvas = $('profileCanvas');
-  const simCtx = simCanvas.getContext('2d');
-  const graphCtx = graphCanvas.getContext('2d');
-  const profileCtx = profileCanvas.getContext('2d');
-
-  const el = {
-    mDepth:$('mDepth'), mWindow:$('mWindow'), mSafeVel:$('mSafeVel'), mDryMass:$('mDryMass'),
-    mWater:$('mWater'), mVolume:$('mVolume'), mRho:$('mRho'), mPStart:$('mPStart'), mBlow:$('mBlow'),
-    hudTime:$('hudTime'), hudDepth:$('hudDepth'), hudWater:$('hudWater'),
-    pressureValue:$('pressureValue'), knob:$('pressureKnob'),
-    tPext:$('tPext'), tPgas:$('tPgas'), tFlow:$('tFlow'), tVel:$('tVel'),
-    startBtn:$('startBtn'), retryBtn:$('retryBtn'), newBtn:$('newBtn'), soundBtn:$('soundBtn'),
-    decBig:$('decBig'), decSmall:$('decSmall'), incSmall:$('incSmall'), incBig:$('incBig'),
-    resultCard:$('resultCard')
-  };
-
-  let mission = null;
-  let state = null;
-  let lastTs = null;
-  let accumulator = 0;
-  let running = false;
-  let soundOn = true;
-  let pFinal = 2.0;
-  let resultDelay = 0;
-
-  function rand(a,b){ return a + Math.random()*(b-a); }
-  function rint(a,b){ return Math.round(rand(a,b)); }
-  function clamp(x,a,b){ return Math.max(a, Math.min(b, x)); }
-  function fmt(x,d=1){ return Number.isFinite(x) ? x.toFixed(d) : '—'; }
-  function kg(x){ return Math.round(x).toLocaleString('es-MX'); }
-
-  function setCanvasSize(canvas, ctx, cssW, cssH){
-    const dpr = Math.max(1, window.devicePixelRatio || 1);
-    const rect = canvas.getBoundingClientRect();
-    const w = cssW || rect.width || 600;
-    const h = cssH || rect.height || 400;
-    canvas.width = Math.round(w*dpr);
-    canvas.height = Math.round(h*dpr);
-    ctx.setTransform(dpr,0,0,dpr,0,0);
-  }
-
-  function resizeAll(){
-    setCanvasSize(simCanvas, simCtx);
-    setCanvasSize(graphCanvas, graphCtx);
-    setCanvasSize(profileCanvas, profileCtx);
-    drawAll();
-  }
-
-  function pExtAtDepth(m, depth){
-    return 1 + (m.rho * G * Math.max(0, depth)) / ATM;
-  }
-
-  function gasPressureAtDepth(m, finalPressure, depth){
-    const progress = clamp((m.depth0 - depth) / m.depth0, 0, 1);
-    return m.pStart + (finalPressure - m.pStart) * progress;
-  }
-
-  function simulate(m, finalPressure, record=false){
-    let t = 0;
-    let depth = m.depth0;
-    let v = m.initialVelocity;
-    let water = m.waterInitial;
-    let lastRec = -1;
-    const data = [];
-    let result = { emerged:false, time:null, finalVel:null, maxVel:0, waterFinal:water, data, reason:'no_emerge' };
-
-    const maxTime = Math.max(70, m.timeMax + 35);
-    const maxDepth = m.depth0 + 30;
-
-    function snapshot(){
-      const pext = pExtAtDepth(m, depth);
-      const pgas = gasPressureAtDepth(m, finalPressure, depth);
-      data.push({t, depth:Math.max(0,depth), v, water, pext, pgas});
+  <script>
+    'use strict';
+    // Banco generado de manera determinista: 8 familias de porcentajes x 12 versiones,
+    // 4 familias de multiplicación x 12, 4 de división x 12, 4 de jerarquía x 12 = 240 reactivos.
+    // Cada intento toma una muestra estratificada de 20 y mezcla tanto preguntas como opciones.
+    const DURATION_MS = 20 * 60 * 1000;
+    const STORAGE_KEY = 'practica_porcentajes_operaciones_v1';
+    const TOTAL = 20;
+    const SUBJECTS = [{key:'P',name:'Porcentajes',qty:8},{key:'M',name:'Multiplicaciones',qty:4},
+                      {key:'D',name:'Divisiones',qty:4},{key:'J',name:'Jerarquía de operaciones',qty:4}];
+    const BANK = [];
+    const bankById = new Map();
+    const round2 = n => Math.round((n + Number.EPSILON) * 100) / 100;
+    const fmt = n => round2(n).toLocaleString('es-MX',{maximumFractionDigits:2});
+    const display = (n,kind='number') => kind==='money' ? '$' + fmt(n) : kind==='percent' ? fmt(n) + ' %' : fmt(n);
+    function add(id, type, question, correct, distractors, explanation, kind='number') {
+      const item = {id,type,question,correct:round2(correct),distractors:distractors.map(round2),explanation,kind};
+      if (bankById.has(id) || !Number.isFinite(item.correct) || item.correct < 0) throw Error('Reactivo inválido: '+id);
+      BANK.push(item); bankById.set(id,item);
     }
-    if(record) snapshot();
+    const seq = (n, fn) => Array.from({length:n},(_,i)=>fn(i));
+    const pcent = (v,r) => v*r/100;
+    // PORCENTAJES: 96 reactivos
+    {
+      const ns=[160,240,320,480,600,750,840,960,1200,1440,1800,2500], ps=[10,15,25,20,35,12,30,40,18,75,8,16];
+      seq(12,i=>{ const n=ns[i],p=ps[i],ans=pcent(n,p);
+        add('P1-'+i,'P',`En una biblioteca hay ${fmt(n)} libros. El ${p} % corresponde a libros de divulgación científica. ¿Cuántos libros son de divulgación científica?`,ans,
+          [n-ans,n*p/10,n-p,ans+p],`Calcula ${p} % de ${fmt(n)}: ${fmt(n)} × ${p}/100 = ${fmt(ans)} libros.`);
+      });
+    }
+    {
+      const prices=[280,450,600,720,850,1200,1600,2400,3500,4200,6400,9800], ps=[10,20,15,25,30,12,5,35,18,40,8,22];
+      seq(12,i=>{const n=prices[i],p=ps[i],ans=n*(1-p/100);
+        add('P2-'+i,'P',`Una mochila tiene un precio de $${fmt(n)} y la tienda ofrece ${p} % de descuento. ¿Cuánto se paga después del descuento?`,ans,
+          [pcent(n,p),n*(1+p/100),n-p,n*(1-p/200)],`Descuento: $${fmt(n)} × ${p}/100 = $${fmt(pcent(n,p))}. Precio final: $${fmt(n)} − $${fmt(pcent(n,p))} = $${fmt(ans)}.`,'money');
+      });
+    }
+    {
+      const bases=[120,180,240,350,420,600,750,900,1200,1600,2400,3200], ps=[10,15,25,20,12,30,8,40,35,18,5,22];
+      seq(12,i=>{const n=bases[i],p=ps[i],ans=n*(1+p/100);
+        add('P3-'+i,'P',`Un taller cobraba $${fmt(n)} por un servicio. Su precio aumentó ${p} %. ¿Cuál es el nuevo precio?`,ans,
+          [n+p,n*(1-p/100),pcent(n,p),n*(1+p/200)],`Un aumento de ${p} % equivale a multiplicar por ${fmt(1+p/100)}: $${fmt(n)} × ${fmt(1+p/100)} = $${fmt(ans)}.`,'money');
+      });
+    }
+    {
+      const ns=[500,800,1000,1200,1500,1800,2000,2400,3000,3600,4000,6000],
+            first=[10,15,20,25,30,10,20,15,35,25,40,12], second=[10,20,15,10,10,25,20,30,5,15,10,20];
+      seq(12,i=>{const n=ns[i],a=first[i],b=second[i],ans=n*(1-a/100)*(1-b/100);
+        add('P4-'+i,'P',`Un artículo cuesta $${fmt(n)}. Primero recibe ${a} % de descuento y, sobre el precio rebajado, otro ${b} %. ¿Cuál es el precio final?`,ans,
+          [n*(1-(a+b)/100),n*(1-a/100),n*(1-b/100),n*(1-a/100+b/100)],
+          `Los descuentos son sucesivos: $${fmt(n)} × ${fmt(1-a/100)} × ${fmt(1-b/100)} = $${fmt(ans)}. No se suman los porcentajes.`,'money');
+      });
+    }
+    {
+      const ns=[200,300,400,500,600,800,1000,1200,1500,2000,2500,3000], ps=[10,20,25,15,30,12,40,35,20,5,18,16];
+      seq(12,i=>{const n=ns[i],p=ps[i],sale=n*(1-p/100);
+        add('P5-'+i,'P',`Después de aplicar un descuento de ${p} %, una chamarra cuesta $${fmt(sale)}. ¿Cuál era su precio original?`,n,
+          [sale*(1+p/100),sale/(p/100),sale*(1-p/100),sale+p],
+          `El precio pagado equivale al ${100-p} % del original. Precio original = $${fmt(sale)} ÷ ${fmt((100-p)/100)} = $${fmt(n)}.`,'money');
+      });
+    }
+    {
+      const totals=[40,50,60,80,100,120,150,160,200,240,300,400], ps=[25,40,30,15,35,20,60,50,45,75,10,12];
+      seq(12,i=>{const n=totals[i],p=ps[i],known=pcent(n,p);
+        add('P6-'+i,'P',`En un grupo de estudiantes, ${fmt(known)} alumnos representan el ${p} % del grupo. ¿Cuántos estudiantes hay en total?`,n,
+          [known*(1+p/100),known*(1-p/100),known*100/(100-p),n-known],
+          `Si ${fmt(known)} es el ${p} % del total, entonces total = ${fmt(known)} ÷ (${p}/100) = ${fmt(n)} estudiantes.`);
+      });
+    }
+    {
+      const pairs=[[200,220],[400,340],[240,300],[600,450],[800,920],[150,135],
+                   [300,390],[250,200],[1200,1440],[500,575],[1000,700],[640,800]];
+      seq(12,i=>{const [a,b]=pairs[i],diff=Math.abs(b-a),ans=diff/a*100,dir=b>a?'aumentó':'disminuyó';
+        add('P7-'+i,'P',`El precio de un servicio pasó de $${fmt(a)} a $${fmt(b)}. ¿En qué porcentaje ${dir} respecto de su precio inicial?`,ans,
+          [diff/b*100,diff,b/a*100,Math.abs(100-ans)],
+          `Cambio absoluto: $${fmt(diff)}. Porcentaje de ${b>a?'aumento':'disminución'} = ${fmt(diff)} ÷ ${fmt(a)} × 100 = ${fmt(ans)} %. La referencia es el precio inicial.`,'percent');
+      });
+    }
+    {
+      const ns=[200,320,400,500,600,720,800,900,1000,1200,1600,2000],
+            ps=[20,25,30,40,50,60,75,80,35,45,25,60],qs=[50,40,25,30,20,50,40,25,20,50,75,30];
+      seq(12,i=>{const n=ns[i],p=ps[i],q=qs[i],first=pcent(n,p),ans=pcent(first,q);
+        add('P8-'+i,'P',`De ${fmt(n)} participantes, el ${p} % se inscribió a un curso. De los inscritos, el ${q} % entregó un proyecto. ¿Cuántas personas entregaron el proyecto?`,ans,
+          [first,pcent(n,q),pcent(n,p+q),pcent(first,100-q)],
+          `Inscritos: ${fmt(n)} × ${p}/100 = ${fmt(first)}. Entregaron: ${fmt(first)} × ${q}/100 = ${fmt(ans)} personas.`);
+      });
+    }
+    // MULTIPLICACIONES: 48 reactivos
+    {
+      const bs=[6,8,12,14,15,18,20,24,25,28,30,32],units=[15,18,24,16,32,25,36,12,40,22,45,28];
+      seq(12,i=>{const b=bs[i],u=units[i],ans=b*u;
+        add('M1-'+i,'M',`Una papelería recibe ${b} cajas con ${u} cuadernos cada una. ¿Cuántos cuadernos recibió en total?`,ans,
+          [b+u,ans-b,ans+u,b*u/2],`Multiplica el número de cajas por los cuadernos de cada caja: ${b} × ${u} = ${fmt(ans)}.`);
+      });
+    }
+    {
+      const ps=[12,15,18,20,25,30,35,40,45,50,60,75],qs=[24,36,40,45,48,52,60,64,72,80,90,120];
+      seq(12,i=>{const p=ps[i],q=qs[i],ans=p*q;
+        add('M2-'+i,'M',`En una feria, cada entrada cuesta $${p} y se venden ${q} entradas. ¿Cuánto dinero se recauda?`,ans,
+          [p+q,p*(q-1),p*(q+1),ans/2],`Recaudación = precio por entrada × entradas vendidas = $${p} × ${q} = $${fmt(ans)}.`,'money');
+      });
+    }
+    {
+      const rs=[8,9,12,14,15,16,18,20,22,24,25,30],mins=[15,18,20,22,24,25,28,30,32,35,40,45];
+      seq(12,i=>{const r=rs[i],m=mins[i],ans=r*m;
+        add('M3-'+i,'M',`Una máquina empaqueta ${r} productos por minuto. Si funciona durante ${m} minutos a ese ritmo, ¿cuántos productos empaqueta?`,ans,
+          [r+m,r*(m+1),r*(m-1),m*(r+2)],`Producción total = ${r} productos/minuto × ${m} minutos = ${fmt(ans)} productos.`);
+      });
+    }
+    {
+      const kg=[1.5,2.5,3.2,4.5,5.5,6.25,7.5,8.4,9.5,10.5,12.5,15.2],ps=[24,32,35,28,42,48,36,25,40,38,52,45];
+      seq(12,i=>{const k=kg[i],p=ps[i],ans=k*p;
+        add('M4-'+i,'M',`En el mercado se compran ${fmt(k)} kg de fruta a $${p} por kilogramo. ¿Cuánto cuesta toda la fruta?`,ans,
+          [Math.floor(k)*p,(k+1)*p,ans/10,ans+p],
+          `Costo = ${fmt(k)} kg × $${p}/kg = $${fmt(ans)}.`,'money');
+      });
+    }
+    // DIVISIONES: 48 reactivos
+    {
+      const each=[12,15,18,20,24,25,30,32,35,40,42,48],groups=[4,5,6,8,10,12,7,9,11,15,16,18];
+      seq(12,i=>{const e=each[i],g=groups[i],all=e*g;
+        add('D1-'+i,'D',`Una escuela reparte ${fmt(all)} lápices en partes iguales entre ${g} salones. ¿Cuántos lápices recibe cada salón?`,e,
+          [all/(g-1),e-1,e+g,e+1],`Divide los lápices entre los salones: ${fmt(all)} ÷ ${g} = ${fmt(e)} lápices por salón.`);
+      });
+    }
+    {
+      const counts=[4,5,6,8,10,12,15,16,20,24,25,30],prices=[18,24,35,28,15,32,12,25,40,18,22,16];
+      seq(12,i=>{const n=counts[i],unit=prices[i],all=n*unit;
+        add('D2-'+i,'D',`Un paquete de ${n} botellas iguales cuesta $${fmt(all)}. ¿Cuál es el precio de cada botella?`,unit,
+          [unit+n,unit-1,unit+2,all/(n+1)],`Precio unitario = $${fmt(all)} ÷ ${n} = $${fmt(unit)} por botella.`,'money');
+      });
+    }
+    {
+      const speeds=[45,50,55,60,65,70,72,75,80,85,90,95],hours=[2,3,4,5,6,2,3,4,5,6,2,3];
+      seq(12,i=>{const s=speeds[i],h=hours[i],dist=s*h;
+        add('D3-'+i,'D',`Un vehículo recorre ${fmt(dist)} kilómetros en ${h} horas a velocidad constante. ¿Cuál es su velocidad en kilómetros por hora?`,s,
+          [dist/(h+1),dist/(h-1),s+h,dist],`Velocidad = distancia ÷ tiempo = ${fmt(dist)} ÷ ${h} = ${fmt(s)} km/h.`,'speed');
+      });
+    }
+    {
+      const caps=[12,15,18,20,24,25,30,32,36,40,45,50],blocks=[3,4,5,6,7,8,9,10,11,12,13,14],extra=[2,6,7,9,5,11,4,15,8,13,17,21];
+      seq(12,i=>{const c=caps[i],k=blocks[i],n=c*k+extra[i],ans=k+1;
+        add('D4-'+i,'D',`Un transporte admite como máximo ${c} pasajeros por viaje. Si deben trasladarse ${n} pasajeros, ¿cuántos viajes completos o parciales se necesitan como mínimo?`,ans,
+          [k,k+2,k-1,n/c],`La división da ${n} ÷ ${c} = ${fmt(n/c)}. Como quedan pasajeros después de ${k} viajes llenos, se necesita otro viaje: ${ans} viajes.`);
+      });
+    }
+    // JERARQUÍA DE OPERACIONES: 48 reactivos
+    {
+      const as=[6,8,10,12,14,16,18,20,22,24,26,30],bs=[3,4,5,6,7,8,9,3,4,5,6,7],cs=[2,3,4,5,2,3,4,6,5,4,3,2];
+      seq(12,i=>{const a=as[i],b=bs[i],c=cs[i],ans=a+b*c;
+        add('J1-'+i,'J',`¿Cuál es el resultado de ${a} + ${b} × ${c}?`,ans,
+          [(a+b)*c,a*b+c,b*(a+c),a+b+c],
+          `Primero la multiplicación: ${b} × ${c} = ${b*c}. Después la suma: ${a} + ${b*c} = ${ans}.`);
+      });
+    }
+    {
+      const as=[4,5,6,7,8,9,10,11,12,13,14,15],bs=[3,4,5,6,7,8,9,10,11,12,13,14],
+            cs=[3,4,2,5,3,4,2,5,3,4,2,5],ds=[2,3,4,5,6,7,8,9,10,11,12,13];
+      seq(12,i=>{const a=as[i],b=bs[i],c=cs[i],d=ds[i],ans=(a+b)*c-d;
+        add('J2-'+i,'J',`¿Cuál es el resultado de (${a} + ${b}) × ${c} − ${d}?`,ans,
+          [a+b*c-d,(a+b)*(c-d),(a+b)*c+d,a+b*c+d],
+          `Paréntesis: ${a} + ${b} = ${a+b}. Multiplicación: ${a+b} × ${c} = ${(a+b)*c}. Resta: ${(a+b)*c} − ${d} = ${ans}.`);
+      });
+    }
+    {
+      const as=[4,5,6,7,8,9,10,11,12,13,14,15],bs=[5,4,3,6,5,4,3,6,5,4,3,6],
+            qs=[2,3,4,5,6,7,8,2,3,4,5,6],ds=[2,3,4,5,2,3,4,5,2,3,4,5];
+      seq(12,i=>{const a=as[i],b=bs[i],q=qs[i],d=ds[i],c=q*d,ans=a*b-q;
+        add('J3-'+i,'J',`¿Cuál es el resultado de ${a} × ${b} − ${c} ÷ ${d}?`,ans,
+          [(a*b-c)/d,a*b-c,a*b-c*d,a*b-(c+d)],
+          `Multiplicación: ${a} × ${b} = ${a*b}. División: ${c} ÷ ${d} = ${q}. Por último: ${a*b} − ${q} = ${ans}.`);
+      });
+    }
+    {
+      const as=[10,12,14,16,18,20,22,24,26,28,30,32],bs=[10,12,14,16,18,20,22,24,26,28,30,32],
+            cs=[3,4,5,6,7,8,9,10,11,12,13,14],ds=[2,3,4,2,3,4,2,3,4,2,3,4];
+      seq(12,i=>{const a=as[i],b=bs[i],c=cs[i],d=ds[i],ans=a+(b-c)*d;
+        add('J4-'+i,'J',`¿Cuál es el resultado de ${a} + (${b} − ${c}) × ${d}?`,ans,
+          [(a+b-c)*d,a+b-c*d,a+b*c-d,a+b-c+d],
+          `Primero el paréntesis: ${b} − ${c} = ${b-c}. Después la multiplicación: ${b-c} × ${d} = ${(b-c)*d}. Finalmente: ${a} + ${(b-c)*d} = ${ans}.`);
+      });
+    }
+    if (BANK.length !== 240 || SUBJECTS.some(s=>BANK.filter(q=>q.type===s.key).length < s.qty)) {
+      throw Error('El banco no contiene la cantidad prevista de reactivos.');
+    }
+    function shuffle(arr) { for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+    function optionsFor(question) {
+      const answer=question.correct, choices=[answer], used=new Set([display(answer,question.kind)]);
+      const candidates=shuffle([...question.distractors]);
+      const addOption=n=>{const value=round2(n),str=display(value,question.kind);
+        if(Number.isFinite(value) && value>=0 && !used.has(str)) {choices.push(value); used.add(str);} };
+      for(const c of candidates) if(choices.length<4) addOption(c);
+      const scale=Math.max(1,Math.round(Math.abs(answer)*.1));
+      const offsets=[scale,-scale,2*scale,-2*scale,1,-1,3,-3,5,-5,10,-10,answer*.1,answer*1.1];
+      for(const off of offsets) if(choices.length<4) addOption(answer+off);
+      if(choices.length!==4) throw Error('No se pudieron crear cuatro opciones para '+question.id);
+      return shuffle(choices);
+    }
+    function makeAttempt() {
+      const items=[];
+      SUBJECTS.forEach(subject=>{
+        const candidates=shuffle(BANK.filter(q=>q.type===subject.key));
+        candidates.slice(0,subject.qty).forEach(q=>items.push({id:q.id,options:optionsFor(q),selected:null}));
+      });
+      shuffle(items);
+      const start=Date.now();
+      return {version:1,startedAt:start,deadline:start+DURATION_MS,finished:false,finishedAt:null,endReason:null,idx:0,items};
+    }
+    let attempt=null,tickInterval=null,modalShown=false;
+    const $ = id=>document.getElementById(id);
+    function save() { try { if(attempt) localStorage.setItem(STORAGE_KEY,JSON.stringify(attempt)); } catch(e) { /* modo privado sin almacenamiento */ } }
+    function load() {
+      try {const raw=localStorage.getItem(STORAGE_KEY);if(!raw)return null;const data=JSON.parse(raw);
+        if(data.version!==1 || !Array.isArray(data.items) || data.items.length!==TOTAL ||
+           !Number.isFinite(data.deadline) || !Number.isFinite(data.startedAt) ||
+           !data.items.every(x=>bankById.has(x.id)&&Array.isArray(x.options)&&x.options.length===4&&
+             (x.selected===null || (Number.isInteger(x.selected)&&x.selected>=0&&x.selected<4)))) return null;
+        return data;
+      } catch(e) {return null;}
+    }
+    function show(which) {['welcome','exam','results'].forEach(id=>$(id).classList.toggle('hidden',id!==which)); }
+    function startTimer() {clearInterval(tickInterval);tickInterval=setInterval(updateTimer,250);updateTimer();}
+    function updateTimer() {
+      if(!attempt||attempt.finished)return;
+      const left=Math.max(0,attempt.deadline-Date.now());
+      $('timer').textContent=asClock(Math.ceil(left/1000));
+      $('timer-box').classList.toggle('warn',left<=5*60*1000 && left>60*1000);
+      $('timer-box').classList.toggle('critical',left<=60*1000);
+      if(left<=0) finish('time');
+    }
+    function asClock(seconds) {return String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0');}
+    function escapeHTML(s) { return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    function updateMeta() {
+      const answered=attempt.items.filter(i=>i.selected!==null).length;
+      $('progress-fill').style.width=(answered/TOTAL*100)+'%';
+      $('progress-text').textContent=`${answered} de ${TOTAL} respondidas`;
+      $('pending-text').textContent=`${TOTAL-answered} sin responder`;
+      $('question-nav').innerHTML=attempt.items.map((item,i)=>
+        `<button type="button" class="jump ${item.selected!==null?'answered':''} ${i===attempt.idx?'current':''}" data-index="${i}" aria-label="Ir a pregunta ${i+1}${item.selected!==null?', respondida':', pendiente'}" ${i===attempt.idx?'aria-current="step"':''}>${i+1}</button>`).join('');
+      $('question-nav').querySelectorAll('.jump').forEach(btn=>btn.addEventListener('click',()=>moveTo(Number(btn.dataset.index))));
+    }
+    function renderQuestion() {
+      if(!attempt || attempt.finished) return;
+      const idx=attempt.idx, item=attempt.items[idx],q=bankById.get(item.id);
+      $('question-num').textContent=`Pregunta ${idx+1} de ${TOTAL}`;
+      $('question-topic').textContent=SUBJECTS.find(x=>x.key===q.type).name;
+      $('question-text').textContent=q.question;
+      $('choices').innerHTML=item.options.map((value,i)=>
+        `<button type="button" role="radio" aria-checked="${item.selected===i}" class="choice ${item.selected===i?'selected':''}" data-opt="${i}">
+          <span class="letter">${'ABCD'[i]}</span><span class="value">${escapeHTML(display(value,q.kind))}</span>
+        </button>`).join('');
+      $('choices').querySelectorAll('.choice').forEach(btn=>btn.addEventListener('click',()=>selectOption(Number(btn.dataset.opt))));
+      $('prev-btn').disabled=idx===0;
+      $('next-btn').disabled=idx===TOTAL-1;
+      updateMeta();
+    }
+    function selectOption(index) {
+      if(!attempt || attempt.finished || Date.now()>=attempt.deadline) {updateTimer();return;}
+      attempt.items[attempt.idx].selected=index; save();renderQuestion();
+    }
+    function moveTo(index) {
+      if(!attempt || attempt.finished || modalShown || Date.now()>=attempt.deadline) {updateTimer();return;}
+      attempt.idx=Math.max(0,Math.min(TOTAL-1,index));save();renderQuestion();
+      if(window.innerWidth<780) $('question-panel').scrollIntoView({behavior:'smooth',block:'start'});
+    }
+    function askFinish() {
+      if(!attempt || attempt.finished)return;
+      if(Date.now()>=attempt.deadline){finish('time');return;}
+      const unanswered=attempt.items.filter(q=>q.selected===null).length;
+      $('confirm-description').textContent=unanswered?
+        `Todavía tienes ${unanswered} pregunta${unanswered===1?'':'s'} sin responder. Estas preguntas contarán como incorrectas.`:
+        'Has respondido las 20 preguntas. Puedes entregarlas ahora o seguir revisando tus respuestas.';
+      modalShown=true;$('confirm-overlay').classList.remove('hidden');$('cancel-finish').focus();
+    }
+    function hideConfirm() {modalShown=false;$('confirm-overlay').classList.add('hidden');$('finish-btn').focus();}
+    function finish(reason='manual') {
+      if(!attempt||attempt.finished)return;
+      const now=Date.now();
+      if(reason==='manual' && now>=attempt.deadline)reason='time';
+      attempt.finished=true;attempt.endReason=reason;
+      attempt.finishedAt=reason==='time'?attempt.deadline:now;
+      modalShown=false;$('confirm-overlay').classList.add('hidden');
+      clearInterval(tickInterval);save();renderResults();
+    }
+    function isCorrect(item,q) { return item.selected!==null && round2(item.options[item.selected])===q.correct; }
+    function renderResults() {
+      if(!attempt)return;
+      clearInterval(tickInterval);show('results');
+      const correct=attempt.items.filter(item=>isCorrect(item,bankById.get(item.id))).length;
+      const blank=attempt.items.filter(item=>item.selected===null).length;
+      const wrong=TOTAL-correct-blank;
+      $('result-score').textContent=`${correct*5}/100`;
+      $('result-identity').textContent=`Estudiante: ${attempt.studentName || 'No registrado'} · Fecha: ${new Date(attempt.finishedAt).toLocaleString('es-MX')}`;
+      $('result-correct').textContent=correct;
+      $('result-wrong').textContent=wrong;
+      $('result-blank').textContent=blank;
+      $('result-time').textContent=asClock(Math.min(DURATION_MS,Math.max(0,attempt.finishedAt-attempt.startedAt))/1000|0);
+      const timeText=attempt.endReason==='time'?'Se agotaron los 20 minutos y tu examen se entregó automáticamente.':'Entregaste tu examen antes de que terminara el tiempo.';
+      $('result-message').textContent=`${timeText} Obtuviste ${correct} aciertos de ${TOTAL} preguntas (${correct*5} puntos).`;
+      $('review-list').innerHTML=attempt.items.map((item,i)=>{
+        const q=bankById.get(item.id),correctFlag=isCorrect(item,q),none=item.selected===null;
+        const status=none?'Sin responder':correctFlag?'Correcta':'Incorrecta';
+        const color=none?'blank':correctFlag?'good':'bad';
+        const userAnswer=none?'No seleccionaste respuesta':('ABCD'[item.selected]+') '+display(item.options[item.selected],q.kind));
+        const correctIndex=item.options.findIndex(n=>round2(n)===q.correct);
+        return `<details class="review-item"><summary>
+          <span><b>Pregunta ${i+1}.</b> <span style="color:var(--secondary)">${escapeHTML(SUBJECTS.find(s=>s.key===q.type).name)}</span></span>
+          <span class="review-status ${color}">${status}</span></summary>
+          <div class="review-body"><p><b>${escapeHTML(q.question)}</b></p>
+            <p>Tu respuesta: <span class="review-value ${correctFlag?'green-txt':'red-txt'}">${escapeHTML(userAnswer)}</span></p>
+            <p>Respuesta correcta: <span class="review-value green-txt">${'ABCD'[correctIndex]}) ${escapeHTML(display(q.correct,q.kind))}</span></p>
+            <div class="solution"><b>Procedimiento:</b> ${escapeHTML(q.explanation)}</div>
+          </div></details>`;
+      }).join('');
+      $('toggle-review').textContent='Expandir todas';
+      window.scrollTo(0,0);
+    }
+    function launch() {
+      const input=$('student-name');
+      const name=input.value.trim().replace(/\s+/g,' ');
+      input.setCustomValidity(name?'':'Escribe el nombre del estudiante antes de comenzar.');
+      if(!name){input.reportValidity();input.focus();return;}
+      input.setCustomValidity('');
+      attempt=makeAttempt();attempt.studentName=name;
+      save();show('exam');renderQuestion();startTimer();window.scrollTo(0,0);
+    }
+    function resetForNewAttempt() {
+      clearInterval(tickInterval);
+      attempt=null;
+      try {localStorage.removeItem(STORAGE_KEY);} catch(e) { /* almacenamiento deshabilitado */ }
+      $('student-name').value='';
+      $('student-name').setCustomValidity('');
+      show('welcome');window.scrollTo(0,0);
+    }
 
-    while(t < maxTime){
-      const prev = {t, depth, v, water};
-      const pext = pExtAtDepth(m, depth);
-      const pgas = gasPressureAtDepth(m, finalPressure, depth);
-      const dp = Math.max(0, pgas - pext);
-      let flow = m.blowCoeff * Math.sqrt(dp);
-      flow = Math.min(flow, water / FIXED_DT);
-      water = Math.max(0, water - flow * FIXED_DT);
-
-      const mass = m.dryMass + water;
-      const buoy = m.rho * G * m.volume;
-      const weight = mass * G;
-      const drag = m.dragCoeff * v * Math.abs(v);
-      const net = buoy - weight - drag;
-      const a = net / mass;
-
-      v += a * FIXED_DT;
-      depth -= v * FIXED_DT;
-      t += FIXED_DT;
-      result.maxVel = Math.max(result.maxVel, Math.abs(v));
-
-      if(record && (t - lastRec >= 0.11)){ lastRec = t; snapshot(); }
-
-      if(depth <= 0){
-        const span = prev.depth - depth;
-        const f = span > 0 ? clamp(prev.depth / span, 0, 1) : 1;
-        const finalT = prev.t + FIXED_DT * f;
-        const finalV = prev.v + (v - prev.v) * f;
-        const finalWater = prev.water + (water - prev.water) * f;
-        result = { emerged:true, time:finalT, finalVel:finalV, maxVel:result.maxVel, waterFinal:finalWater, data, reason:'emerged' };
-        if(record){
-          data.push({t:finalT, depth:0, v:finalV, water:finalWater, pext:pExtAtDepth(m,0), pgas:gasPressureAtDepth(m,finalPressure,0)});
+    // Generador de PDF local, sin depender de internet, bibliotecas ni servicios externos.
+    // El documento utiliza fuentes PDF estándar, páginas A4 y codificación WinAnsi.
+    function pdfTextLiteral(value) {
+      const special={
+        '€':128,'‚':130,'ƒ':131,'„':132,'…':133,'†':134,'‡':135,'ˆ':136,
+        '‰':137,'Š':138,'‹':139,'Œ':140,'Ž':142,'‘':145,'’':146,'“':147,
+        '”':148,'•':149,'–':150,'—':151,'˜':152,'™':153,'š':154,'›':155,
+        'œ':156,'ž':158,'Ÿ':159
+      };
+      const fallback={'−':'-','⁻':'-','∑':'Suma','≤':'<=','≥':'>=',
+        '≠':'!=','√':'raíz','∞':'infinito',' ':' '};
+      let out='';
+      for(const original of String(value)) {
+        const replacement=fallback[original]===undefined?original:fallback[original];
+        for(const ch of replacement) {
+          const cp=ch.codePointAt(0);
+          if(ch==='('||ch===')'||ch==='\\') out+='\\'+ch;
+          else if(cp>=32&&cp<=126) out+=ch;
+          else {
+            const code=(cp>=160&&cp<=255)?cp:special[ch];
+            out+=code===undefined?'?':'\\'+code.toString(8).padStart(3,'0');
+          }
+        }
+      }
+      return '('+out+')';
+    }
+    function buildReportPdf() {
+      if(!attempt || !attempt.finished) throw Error('No hay un examen finalizado.');
+      const W=595.28,H=841.89,M=43,RIGHT=W-M,WIDTH=RIGHT-M;
+      const pages=[];
+      let commands=[],y=0;
+      const ctx=document.createElement('canvas').getContext('2d');
+      const measure=(v,size,bold=false)=>{
+        if(!ctx) return String(v).length*size*.53;
+        ctx.font=`${bold?'bold ':''}${size}px Arial`;
+        return ctx.measureText(String(v)).width;
+      };
+      function wrap(value,width,size,bold=false) {
+        const result=[];
+        for(const paragraph of String(value).split(/\n/)) {
+          let line='';
+          for(const word of paragraph.split(/\s+/)) {
+            if(!word)continue;
+            const test=line?line+' '+word:word;
+            if(measure(test,size,bold)<=width){line=test;continue;}
+            if(line){result.push(line);line='';}
+            let fragment='';
+            for(const ch of word){
+              if(fragment&&measure(fragment+ch,size,bold)>width){result.push(fragment);fragment='';}
+              fragment+=ch;
+            }
+            line=fragment;
+          }
+          result.push(line);
         }
         return result;
       }
-      if(depth > maxDepth && t > 5){
-        result = { emerged:false, time:t, finalVel:v, maxVel:result.maxVel, waterFinal:water, data, reason:'sank' };
-        return result;
+      function text(value,x,at,size=10,bold=false,color='0.12 0.20 0.29') {
+        commands.push(`BT /${bold?'F2':'F1'} ${size} Tf ${color} rg 1 0 0 1 ${x.toFixed(2)} ${at.toFixed(2)} Tm ${pdfTextLiteral(value)} Tj ET`);
       }
-    }
-    result = { emerged:false, time:t, finalVel:v, maxVel:result.maxVel, waterFinal:water, data, reason:'late' };
-    return result;
-  }
-
-  function isSuccess(m, res){
-    return res.emerged && res.time >= m.timeMin && res.time <= m.timeMax && Math.abs(res.finalVel) <= m.safeVel;
-  }
-
-  function scanSuccessRange(m){
-    const ok = [];
-    const step = 0.01;
-    for(let p=m.pMin; p<=m.pMax+1e-9; p+=step){
-      const r = simulate(m,p,false);
-      if(isSuccess(m,r)) ok.push(p);
-    }
-    if(!ok.length) return null;
-    return {min:ok[0], max:ok[ok.length-1], width:ok[ok.length-1]-ok[0], count:ok.length};
-  }
-
-  function buildMission(){
-    for(let attempt=0; attempt<400; attempt++){
-      const depth0 = rand(55, 115);
-      const rho = rand(1005, 1030);
-      const dryMass = rand(42000, 92000);
-      const waterInitial = rand(2600, 7600);
-      const neutralWater = waterInitial * rand(0.42, 0.72);
-      const volume = (dryMass + neutralWater) / rho;
-      const pextBottom = 1 + (rho * G * depth0) / ATM;
-      const overPressure = rand(0.16, 0.40);
-      const pStart = pextBottom + overPressure;
-      const pMin = 1.05;
-      const pMax = Math.min(5.8, Math.max(2.25, pStart - 0.30));
-      const blowCoeff = rand(90, 190);
-      const dragCoeff = rand(2600, 7600);
-      const safeVel = rand(2.4, 4.4);
-      const initialVelocity = rand(0.0, 0.18);
-
-      let m = {depth0,rho,dryMass,waterInitial,neutralWater,volume,pextBottom,overPressure,pStart,pMin,pMax,blowCoeff,dragCoeff,safeVel,initialVelocity,timeMin:0,timeMax:0,range:null};
-
-      const candidates = [];
-      for(let p=pMin; p<=pMax+1e-9; p+=0.04){
-        const r = simulate(m,p,false);
-        if(r.emerged && Math.abs(r.finalVel) <= safeVel && r.time >= 14 && r.time <= 48){
-          candidates.push({p,t:r.time,v:r.finalVel});
+      function rect(x,bottom,width,height,fill) {
+        commands.push(`${fill} rg ${x.toFixed(2)} ${bottom.toFixed(2)} ${width.toFixed(2)} ${height.toFixed(2)} re f`);
+      }
+      function rule(at) {rect(M,at,WIDTH,.7,'0.82 0.87 0.91');}
+      function lines(value,x,width,size=10,leading=14,bold=false,color='0.12 0.20 0.29') {
+        const row=wrap(value,width,size,bold);
+        for(const line of row){text(line,x,y,size,bold,color);y-=leading;}
+        return row.length;
+      }
+      function newPage() {
+        commands=[];pages.push(commands);
+        text('REPORTE DE RESULTADOS',M,H-52,17,true,'0.09 0.30 0.50');
+        text('Porcentajes y operaciones | Práctica tipo EXANI-II',M,H-70,9,false,'0.34 0.41 0.47');
+        rule(H-79);y=H-102;
+      }
+      function ensure(height) {if(y-height<50)newPage();}
+      const name=attempt.studentName||'No registrado';
+      const date=new Date(attempt.finishedAt).toLocaleString('es-MX',{dateStyle:'long',timeStyle:'short'});
+      const score=attempt.items.filter(it=>isCorrect(it,bankById.get(it.id))).length;
+      const blank=attempt.items.filter(it=>it.selected===null).length;
+      const duration=Math.floor(Math.min(DURATION_MS,Math.max(0,attempt.finishedAt-attempt.startedAt))/1000);
+      newPage();
+      lines('Estudiante: '+name,M,WIDTH,12,18,true);
+      lines('Fecha de entrega: '+date,M,WIDTH,10,15);
+      lines('Duración: '+asClock(duration)+'  |  Entrega: '+(attempt.endReason==='time'?'automática por tiempo':'anticipada'),M,WIDTH,10,15);
+      y-=8;
+      rect(M,y-24,WIDTH,39,'0.92 0.96 0.99');
+      text(`Calificación: ${score*5} / 100`,M+14,y-10,14,true,'0.09 0.30 0.50');
+      text(`Aciertos: ${score}    Incorrectas: ${TOTAL-score-blank}    Sin responder: ${blank}`,M+234,y-9,9,false);
+      y-=61;
+      text('DETALLE DE LAS 20 PREGUNTAS',M,y,11,true,'0.09 0.30 0.50');
+      y-=24;
+      attempt.items.forEach((item,index)=>{
+        const q=bankById.get(item.id);
+        const correctIndex=item.options.findIndex(v=>round2(v)===q.correct);
+        const answered=item.selected!==null;
+        const status=!answered?'Sin responder':isCorrect(item,q)?'Correcta':'Incorrecta';
+        const topic=SUBJECTS.find(x=>x.key===q.type).name;
+        const statement=wrap(q.question,WIDTH-18,10);
+        const choiceTexts=item.options.map((v,i)=>`${'ABCD'[i]}) ${display(v,q.kind)}`);
+        const choiceRows=choiceTexts.map(v=>wrap(v,WIDTH-26,9.5));
+        const answer=answered?`${'ABCD'[item.selected]}) ${display(item.options[item.selected],q.kind)}`:'Sin responder';
+        const solution=`${'ABCD'[correctIndex]}) ${display(q.correct,q.kind)}`;
+        const answerRows=wrap('Respuesta del estudiante: '+answer,WIDTH-18,9.5,true);
+        const rightRows=wrap('Respuesta correcta: '+solution,WIDTH-18,9.5,true);
+        const boxHeight=23+statement.length*14+choiceRows.reduce((total,row)=>total+row.length*13,0)+
+          6+answerRows.length*14+rightRows.length*14+15;
+        ensure(boxHeight+8);
+        rect(M,y-8,WIDTH,22,'0.92 0.95 0.98');
+        text(`${index+1}. ${topic}`,M+9,y,10,true,'0.09 0.30 0.50');
+        text(status,RIGHT-99,y,9,true,status==='Correcta'?'0.08 0.43 0.30':status==='Incorrecta'?'0.65 0.19 0.24':'0.55 0.37 0.10');
+        y-=29;
+        for(const row of statement){text(row,M+9,y,10);y-=14;}
+        y-=4;
+        for(const choice of choiceRows){
+          for(const row of choice){text(row,M+19,y,9.5,false,'0.29 0.35 0.41');y-=13;}
         }
+        y-=5;
+        for(const row of answerRows){text(row,M+9,y,9.5,true);y-=14;}
+        for(const row of rightRows){text(row,M+9,y,9.5,true,'0.08 0.43 0.30');y-=14;}
+        y-=7;
+        rule(y);
+        y-=20;
+      });
+      const objects=[null];
+      const reserve=()=>{objects.push('');return objects.length-1;};
+      const add=value=>{objects.push(value);return objects.length-1;};
+      const catalogRef=reserve(),pagesRef=reserve();
+      const normalRef=add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>');
+      const boldRef=add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>');
+      const pageRefs=[];
+      pages.forEach((content,index)=>{
+        const footer=`BT /F1 8 Tf 0.44 0.51 0.57 rg 1 0 0 1 ${M} 29 Tm (Documento generado localmente al finalizar el examen) Tj ET\n`+
+          `BT /F1 8 Tf 0.44 0.51 0.57 rg 1 0 0 1 ${RIGHT-61} 29 Tm ${pdfTextLiteral('Página '+(index+1)+' de '+pages.length)} Tj ET`;
+        const stream=content.join('\n')+'\n'+footer+'\n';
+        const streamRef=add(`<< /Length ${stream.length} >>\nstream\n${stream}endstream`);
+        const pageRef=add(`<< /Type /Page /Parent ${pagesRef} 0 R /MediaBox [0 0 ${W} ${H}] `+
+          `/Resources << /Font << /F1 ${normalRef} 0 R /F2 ${boldRef} 0 R >> >> /Contents ${streamRef} 0 R >>`);
+        pageRefs.push(pageRef);
+      });
+      objects[pagesRef]=`<< /Type /Pages /Kids [${pageRefs.map(ref=>ref+' 0 R').join(' ')}] /Count ${pageRefs.length} >>`;
+      objects[catalogRef]=`<< /Type /Catalog /Pages ${pagesRef} 0 R >>`;
+      let doc='%PDF-1.4\n%PDF\n';
+      const offsets=[0];
+      for(let i=1;i<objects.length;i++){
+        offsets[i]=doc.length;
+        doc+=`${i} 0 obj\n${objects[i]}\nendobj\n`;
       }
-      if(candidates.length < 8) continue;
-
-      const c = candidates[Math.floor(candidates.length*rand(0.28,0.72))];
-      const halfWindow = rand(2.6, 4.2);
-      m.timeMin = Math.max(8, c.t - halfWindow);
-      m.timeMax = c.t + halfWindow;
-      const range = scanSuccessRange(m);
-      if(range && range.width >= 0.10 && range.width <= 2.60){
-        m.range = range;
-        m.id = Math.random().toString(36).slice(2,8).toUpperCase();
-        return m;
+      const xref=doc.length;
+      doc+=`xref\n0 ${objects.length}\n0000000000 65535 f \n`;
+      for(let i=1;i<objects.length;i++)doc+=String(offsets[i]).padStart(10,'0')+' 00000 n \n';
+      doc+=`trailer\n<< /Size ${objects.length} /Root ${catalogRef} 0 R >>\nstartxref\n${xref}\n%%EOF`;
+      return new Blob([new TextEncoder().encode(doc)],{type:'application/pdf'});
+    }
+    function downloadReportPdf() {
+      if(!attempt||!attempt.finished)return;
+      try {
+        const pdf=buildReportPdf();
+        const safeName=(attempt.studentName||'estudiante').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+          .replace(/[^a-zA-Z0-9_-]+/g,'_').replace(/^_+|_+$/g,'').slice(0,55)||'estudiante';
+        const date=new Date(attempt.finishedAt).toLocaleDateString('en-CA');
+        const url=URL.createObjectURL(pdf);
+        const a=document.createElement('a');a.href=url;a.download=`reporte_${safeName}_${date}.pdf`;
+        document.body.appendChild(a);a.click();a.remove();
+        setTimeout(()=>URL.revokeObjectURL(url),60000);
+      } catch(e) {
+        console.error('Error generando PDF',e);
+        alert('No se pudo generar el PDF en este navegador. Prueba la opción «Imprimir resultados» y elige «Guardar como PDF».');
       }
     }
-
-    // Fallback, rarely used.
-    const depth0 = 80, rho = 1025, dryMass = 65000, waterInitial = 5200;
-    const neutralWater = 3200;
-    const volume = (dryMass + neutralWater) / rho;
-    const pextBottom = 1 + (rho*G*depth0)/ATM;
-    let m = {depth0,rho,dryMass,waterInitial,neutralWater,volume,pextBottom,overPressure:.25,pStart:pextBottom+.25,pMin:1.05,pMax:5.2,blowCoeff:135,dragCoeff:4600,safeVel:3.3,initialVelocity:.05,timeMin:22,timeMax:29,range:null,id:'BASE'};
-    m.range = scanSuccessRange(m) || {min:2.0,max:2.7,width:.7,count:70};
-    return m;
-  }
-
-  function newMission(){
-    mission = buildMission();
-    pFinal = clamp(rand(mission.pMin, mission.pMax), mission.pMin, mission.pMax);
-    state = null;
-    running = false;
-    accumulator = 0;
-    lastTs = null;
-    resultDelay = 0;
-    el.resultCard.className = 'result-card';
-    el.resultCard.innerHTML = '';
-    updateMissionUI();
-    updatePressureUI();
-    clearGraph();
-    drawAll();
-    setButtons(false);
-  }
-
-  function resetSameMission(){
-    state = null;
-    running = false;
-    accumulator = 0;
-    lastTs = null;
-    resultDelay = 0;
-    el.resultCard.className = 'result-card';
-    el.resultCard.innerHTML = '';
-    updateTelemetryIdle();
-    clearGraph();
-    drawAll();
-    setButtons(false);
-  }
-
-  function updateMissionUI(){
-    el.mDepth.textContent = `${fmt(mission.depth0,1)} m`;
-    el.mWindow.textContent = `${fmt(mission.timeMin,1)} a ${fmt(mission.timeMax,1)} s`;
-    el.mSafeVel.textContent = `≤ ${fmt(mission.safeVel,1)} m/s`;
-    el.mDryMass.textContent = `${kg(mission.dryMass)} kg`;
-    el.mWater.textContent = `${kg(mission.waterInitial)} kg`;
-    el.mVolume.textContent = `${fmt(mission.volume,1)} m³`;
-    el.mRho.textContent = `${fmt(mission.rho,0)} kg/m³`;
-    el.mPStart.textContent = `${fmt(mission.pStart,2)} atm`;
-    el.mBlow.textContent = `${fmt(mission.blowCoeff,0)} kg/s√atm`;
-    updateTelemetryIdle();
-  }
-
-  function updateTelemetryIdle(){
-    if(!mission) return;
-    el.hudTime.textContent = `0.0 s`;
-    el.hudDepth.textContent = `${fmt(mission.depth0,1)} m`;
-    el.hudWater.textContent = `100%`;
-    const pext = pExtAtDepth(mission, mission.depth0);
-    const pgas = gasPressureAtDepth(mission, pFinal, mission.depth0);
-    el.tPext.textContent = `${fmt(pext,2)} atm`;
-    el.tPgas.textContent = `${fmt(pgas,2)} atm`;
-    el.tFlow.textContent = `—`;
-    el.tVel.textContent = `0.0 m/s`;
-  }
-
-  function updatePressureUI(){
-    if(!mission) return;
-    pFinal = clamp(pFinal, mission.pMin, mission.pMax);
-    el.pressureValue.textContent = `${fmt(pFinal,2)} atm`;
-    const frac = (pFinal - mission.pMin) / (mission.pMax - mission.pMin);
-    const sweep = 270 * frac;
-    const rot = -135 + sweep;
-    el.knob.style.setProperty('--knob-angle', `${sweep}deg`);
-    el.knob.style.setProperty('--needle-rot', `${rot}deg`);
-    el.knob.setAttribute('aria-valuemin', fmt(mission.pMin,2));
-    el.knob.setAttribute('aria-valuemax', fmt(mission.pMax,2));
-    el.knob.setAttribute('aria-valuenow', fmt(pFinal,2));
-    updateTelemetryIdle();
-    drawProfile();
-  }
-
-  function adjustPressure(delta){
-    if(running) return;
-    pFinal = clamp(Math.round((pFinal + delta)*100)/100, mission.pMin, mission.pMax);
-    updatePressureUI();
-    drawAll();
-  }
-
-  function setButtons(isRunning){
-    el.startBtn.disabled = isRunning;
-    el.retryBtn.disabled = isRunning;
-    el.newBtn.disabled = isRunning;
-    [el.decBig,el.decSmall,el.incSmall,el.incBig].forEach(b => b.disabled = isRunning);
-  }
-
-  function start(){
-    if(running || !mission) return;
-    const now = performance.now();
-    lastTs = now;
-    accumulator = 0;
-    state = {
-      t:0,
-      depth:mission.depth0,
-      v:mission.initialVelocity,
-      water:mission.waterInitial,
-      pext:pExtAtDepth(mission,mission.depth0),
-      pgas:gasPressureAtDepth(mission,pFinal,mission.depth0),
-      flow:0,
-      a:0,
-      data:[],
-      done:false,
-      result:null,
-      lastRec:-1
-    };
-    state.data.push({t:0, depth:state.depth, v:state.v, water:state.water, pext:state.pext, pgas:state.pgas});
-    el.resultCard.className = 'result-card';
-    el.resultCard.innerHTML = '';
-    running = true;
-    setButtons(true);
-    requestAnimationFrame(loop);
-  }
-
-  function loop(ts){
-    if(!running) return;
-    if(lastTs === null) lastTs = ts;
-    let frameDt = (ts - lastTs) / 1000;
-    lastTs = ts;
-    frameDt = Math.min(frameDt, 0.08);
-    accumulator += frameDt;
-    while(accumulator >= FIXED_DT && running){
-      stepPhysics(FIXED_DT);
-      accumulator -= FIXED_DT;
-    }
-    drawAll();
-    if(running) requestAnimationFrame(loop);
-  }
-
-  function stepPhysics(dt){
-    const m = mission;
-    const s = state;
-    const prev = {t:s.t, depth:s.depth, v:s.v, water:s.water};
-
-    s.pext = pExtAtDepth(m, s.depth);
-    s.pgas = gasPressureAtDepth(m, pFinal, s.depth);
-    const dp = Math.max(0, s.pgas - s.pext);
-    s.flow = Math.min(m.blowCoeff * Math.sqrt(dp), s.water / dt);
-    s.water = Math.max(0, s.water - s.flow*dt);
-
-    const mass = m.dryMass + s.water;
-    const buoy = m.rho * G * m.volume;
-    const weight = mass * G;
-    const drag = m.dragCoeff * s.v * Math.abs(s.v);
-    s.a = (buoy - weight - drag) / mass;
-    s.v += s.a * dt;
-    s.depth -= s.v * dt;
-    s.t += dt;
-
-    if(s.t - s.lastRec >= 0.1){
-      s.lastRec = s.t;
-      s.data.push({t:s.t, depth:Math.max(0,s.depth), v:s.v, water:s.water, pext:s.pext, pgas:s.pgas});
-    }
-
-    if(s.depth <= 0){
-      const span = prev.depth - s.depth;
-      const f = span > 0 ? clamp(prev.depth/span, 0, 1) : 1;
-      const finalT = prev.t + dt*f;
-      const finalV = prev.v + (s.v-prev.v)*f;
-      const finalWater = prev.water + (s.water-prev.water)*f;
-      s.depth = 0;
-      s.t = finalT;
-      s.v = finalV;
-      s.water = finalWater;
-      s.data.push({t:s.t, depth:0, v:s.v, water:s.water, pext:pExtAtDepth(m,0), pgas:gasPressureAtDepth(m,pFinal,0)});
-      finish({emerged:true,time:s.t,finalVel:s.v,waterFinal:s.water,data:s.data,reason:'emerged'});
-      return;
-    }
-
-    if(s.depth > m.depth0 + 30 && s.t > 5){
-      finish({emerged:false,time:s.t,finalVel:s.v,waterFinal:s.water,data:s.data,reason:'sank'});
-      return;
-    }
-
-    if(s.t > Math.max(70, m.timeMax + 35)){
-      finish({emerged:false,time:s.t,finalVel:s.v,waterFinal:s.water,data:s.data,reason:'late'});
-      return;
-    }
-
-    updateLiveTelemetry();
-  }
-
-  function updateLiveTelemetry(){
-    if(!state || !mission) return;
-    el.hudTime.textContent = `${fmt(state.t,1)} s`;
-    el.hudDepth.textContent = `${fmt(Math.max(0,state.depth),1)} m`;
-    el.hudWater.textContent = `${fmt(100*state.water/mission.waterInitial,0)}%`;
-    el.tPext.textContent = `${fmt(state.pext,2)} atm`;
-    el.tPgas.textContent = `${fmt(state.pgas,2)} atm`;
-    el.tFlow.textContent = `${fmt(state.flow,0)} kg/s`;
-    el.tVel.textContent = `${fmt(state.v,2)} m/s ↑`;
-  }
-
-  function finish(res){
-    running = false;
-    setButtons(false);
-    state.result = res;
-    updateLiveTelemetry();
-    drawAll();
-    drawGraph(res.data);
-    resultDelay = window.setTimeout(() => showResult(res), 900);
-  }
-
-  function showResult(res){
-    const success = isSuccess(mission,res);
-    const waterPct = 100 * res.waterFinal / mission.waterInitial;
-    let title = success ? 'Emersión dentro de la ventana' : 'Emersión fuera de condición';
-    let reason = '';
-    if(!res.emerged){
-      title = res.reason === 'sank' ? 'El submarino perdió el ascenso' : 'No emergió a tiempo';
-      reason = res.reason === 'sank' ? 'La masa siguió siendo demasiado alta para sostener un ascenso.' : 'La presión final no expulsó agua suficiente para cumplir la ventana.';
-    } else if(Math.abs(res.finalVel) > mission.safeVel){
-      reason = 'La velocidad de salida superó el límite de seguridad.';
-    } else if(res.time < mission.timeMin){
-      reason = 'Salió demasiado pronto: la presión final fue demasiado agresiva para esta misión.';
-    } else if(res.time > mission.timeMax){
-      reason = 'Salió demasiado tarde: el soplado fue insuficiente o demasiado conservador.';
-    } else {
-      reason = 'El perfil logró reducir masa suficiente sin adelantar ni atrasar la emersión.';
-    }
-
-    const range = mission.range;
-    const rangeText = range ? `${fmt(range.min,2)} a ${fmt(range.max,2)} atm` : 'no disponible';
-    el.resultCard.className = `result-card show ${success ? 'good':'bad'}`;
-    el.resultCard.innerHTML = `
-      <div class="result-title">${title}</div>
-      <div>${reason}</div>
-      <div style="margin-top:9px;color:#cfeef8">
-        <b>Tu presión final:</b> ${fmt(pFinal,2)} atm<br>
-        <b>Tiempo de emersión:</b> ${res.emerged ? fmt(res.time,2)+' s' : 'no emergió'}<br>
-        <b>Velocidad de salida:</b> ${res.emerged ? fmt(Math.abs(res.finalVel),2)+' m/s' : '—'}<br>
-        <b>Agua restante:</b> ${fmt(waterPct,1)}%<br>
-        <b>Rango aproximado de éxito:</b> ${rangeText}
-      </div>`;
-    document.body.classList.remove('success-glow','fail-glow');
-    void document.body.offsetWidth;
-    document.body.classList.add(success ? 'success-glow':'fail-glow');
-    if(success) playGood(); else playImpact();
-  }
-
-  function drawAll(){
-    drawSim();
-    drawProfile();
-    if(state && state.data && state.data.length > 1) drawGraph(state.data);
-  }
-
-  function depthToY(depth){
-    const h = simCanvas.getBoundingClientRect().height || 620;
-    const top = 70;
-    const bottom = h - 72;
-    const scaleMax = mission ? mission.depth0 : 100;
-    return top + (depth / scaleMax) * (bottom - top);
-  }
-
-  function drawSim(){
-    const w = simCanvas.getBoundingClientRect().width || 700;
-    const h = simCanvas.getBoundingClientRect().height || 620;
-    simCtx.clearRect(0,0,w,h);
-    const g = simCtx.createLinearGradient(0,0,0,h);
-    g.addColorStop(0,'#0f4963');
-    g.addColorStop(.18,'#0a334f');
-    g.addColorStop(.65,'#051a2e');
-    g.addColorStop(1,'#02101e');
-    simCtx.fillStyle = g;
-    simCtx.fillRect(0,0,w,h);
-
-    // light rays
-    simCtx.save();
-    simCtx.globalAlpha = .16;
-    for(let i=0;i<8;i++){
-      simCtx.beginPath();
-      simCtx.moveTo(70+i*120,0);
-      simCtx.lineTo(10+i*80,h);
-      simCtx.lineWidth = 24;
-      simCtx.strokeStyle = '#8eeaff';
-      simCtx.stroke();
-    }
-    simCtx.restore();
-
-    // surface
-    const surfaceY = depthToY(0);
-    simCtx.strokeStyle = 'rgba(190,245,255,.85)';
-    simCtx.lineWidth = 3;
-    simCtx.beginPath();
-    for(let x=0; x<=w; x+=12){
-      const y = surfaceY + Math.sin(x*.035 + (state?state.t*.9:0))*3;
-      if(x===0) simCtx.moveTo(x,y); else simCtx.lineTo(x,y);
-    }
-    simCtx.stroke();
-    simCtx.fillStyle = 'rgba(220,255,255,.12)';
-    simCtx.fillRect(0,0,w,surfaceY+5);
-
-    // depth ruler
-    simCtx.save();
-    simCtx.translate(42,0);
-    simCtx.strokeStyle = 'rgba(204,240,255,.45)';
-    simCtx.fillStyle = 'rgba(220,245,255,.75)';
-    simCtx.font = '12px ui-monospace, monospace';
-    simCtx.textAlign = 'left';
-    const maxD = mission ? mission.depth0 : 100;
-    for(let d=0; d<=maxD+1; d+=10){
-      const y = depthToY(d);
-      simCtx.beginPath(); simCtx.moveTo(0,y); simCtx.lineTo(d%20===0?22:12,y); simCtx.stroke();
-      if(d%20===0) simCtx.fillText(`${d} m`, 28, y+4);
-    }
-    simCtx.restore();
-
-    // time window marker near top
-    simCtx.fillStyle = 'rgba(255,209,102,.1)';
-    simCtx.fillRect(w-126, surfaceY+8, 96, 34);
-    simCtx.strokeStyle = 'rgba(255,209,102,.35)';
-    simCtx.strokeRect(w-126, surfaceY+8, 96, 34);
-    simCtx.fillStyle = 'rgba(255,231,170,.95)';
-    simCtx.font = '12px system-ui';
-    simCtx.textAlign = 'center';
-    if(mission) simCtx.fillText(`${fmt(mission.timeMin,1)}–${fmt(mission.timeMax,1)} s`, w-78, surfaceY+29);
-
-    const depth = state ? state.depth : (mission ? mission.depth0 : 80);
-    const waterPct = state && mission ? state.water/mission.waterInitial : 1;
-    const y = depthToY(clamp(depth,0, mission?mission.depth0:100));
-    const x = w*0.52;
-    drawSubmarine(x,y,waterPct);
-
-    // bubbles depending on flow
-    if(state && running && state.flow > 1){
-      simCtx.save();
-      simCtx.globalAlpha = clamp(state.flow/260, .15, .75);
-      for(let i=0;i<16;i++){
-        const bx = x - 80 + Math.random()*160;
-        const by = y + 18 + Math.random()*34;
-        const r = 2 + Math.random()*5;
-        simCtx.beginPath(); simCtx.arc(bx,by,r,0,Math.PI*2); simCtx.strokeStyle = 'rgba(190,245,255,.85)'; simCtx.stroke();
-      }
-      simCtx.restore();
-    }
-  }
-
-  function drawSubmarine(x,y,waterPct){
-    const ctx = simCtx;
-    const bodyW = 170, bodyH = 48;
-    ctx.save();
-    ctx.translate(x,y);
-    // shadow
-    ctx.fillStyle = 'rgba(0,0,0,.22)';
-    ctx.beginPath(); ctx.ellipse(0,52,95,18,0,0,Math.PI*2); ctx.fill();
-    // body
-    const hull = ctx.createLinearGradient(0,-bodyH/2,0,bodyH/2);
-    hull.addColorStop(0,'#8ad2e7'); hull.addColorStop(.5,'#2f89a8'); hull.addColorStop(1,'#14506e');
-    ctx.fillStyle = hull;
-    ctx.beginPath(); ctx.ellipse(0,0,bodyW/2,bodyH/2,0,0,Math.PI*2); ctx.fill();
-    ctx.strokeStyle = 'rgba(230,255,255,.55)'; ctx.lineWidth = 2; ctx.stroke();
-    // nose shine
-    ctx.fillStyle = 'rgba(255,255,255,.18)';
-    ctx.beginPath(); ctx.ellipse(-32,-12,42,8,-0.1,0,Math.PI*2); ctx.fill();
-    // tail
-    ctx.fillStyle = '#1a5d7e';
-    ctx.beginPath(); ctx.moveTo(-82,0); ctx.lineTo(-118,-26); ctx.lineTo(-108,0); ctx.lineTo(-118,26); ctx.closePath(); ctx.fill();
-    ctx.strokeStyle = 'rgba(230,255,255,.4)'; ctx.stroke();
-    // conning tower
-    ctx.fillStyle = '#2e8bae';
-    ctx.roundRect(-20,-48,44,36,9); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#c7f6ff';
-    for(let i=-44;i<=48;i+=30){ ctx.beginPath(); ctx.arc(i,-2,7,0,Math.PI*2); ctx.fill(); }
-    // ballast tank indicator
-    ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.roundRect(-58,22,116,10,5); ctx.fill();
-    ctx.fillStyle = waterPct > .55 ? '#75d7ff' : waterPct > .22 ? '#8ef7c7' : '#ffd166';
-    ctx.roundRect(-56,24,112*clamp(waterPct,0,1),6,4); ctx.fill();
-    // label
-    ctx.fillStyle = 'rgba(230,255,255,.88)'; ctx.font = '12px ui-monospace, monospace'; ctx.textAlign = 'center';
-    ctx.fillText('LASTRE',0,47);
-    ctx.restore();
-  }
-
-  function drawProfile(){
-    if(!mission) return;
-    const w = profileCanvas.getBoundingClientRect().width || 280;
-    const h = profileCanvas.getBoundingClientRect().height || 150;
-    profileCtx.clearRect(0,0,w,h);
-    profileCtx.fillStyle = 'rgba(1,10,18,.86)';
-    profileCtx.fillRect(0,0,w,h);
-    const pad = {l:34,r:16,t:18,b:26};
-    const minP = 1;
-    const maxP = Math.max(mission.pStart, mission.pMax, pFinal) + .4;
-    const xP = p => pad.l + (p-minP)/(maxP-minP)*(w-pad.l-pad.r);
-    const yDepth = d => pad.t + (d/mission.depth0)*(h-pad.t-pad.b);
-    profileCtx.strokeStyle = 'rgba(180,235,250,.15)'; profileCtx.lineWidth = 1;
-    for(let i=0;i<=4;i++){
-      const y = pad.t + i/4*(h-pad.t-pad.b);
-      profileCtx.beginPath(); profileCtx.moveTo(pad.l,y); profileCtx.lineTo(w-pad.r,y); profileCtx.stroke();
-    }
-    // external pressure line
-    profileCtx.strokeStyle = 'rgba(93,214,255,.8)'; profileCtx.lineWidth = 2;
-    profileCtx.beginPath();
-    for(let i=0;i<=60;i++){
-      const d = mission.depth0*i/60;
-      const x = xP(pExtAtDepth(mission,d));
-      const y = yDepth(d);
-      if(i===0) profileCtx.moveTo(x,y); else profileCtx.lineTo(x,y);
-    }
-    profileCtx.stroke();
-    // gas pressure line
-    profileCtx.strokeStyle = 'rgba(255,209,102,.95)'; profileCtx.lineWidth = 3;
-    profileCtx.beginPath();
-    profileCtx.moveTo(xP(pFinal), yDepth(0));
-    profileCtx.lineTo(xP(mission.pStart), yDepth(mission.depth0));
-    profileCtx.stroke();
-    // dots
-    profileCtx.fillStyle = '#ffd166';
-    profileCtx.beginPath(); profileCtx.arc(xP(pFinal), yDepth(0), 5,0,Math.PI*2); profileCtx.fill();
-    profileCtx.fillStyle = '#eaf7ff';
-    profileCtx.beginPath(); profileCtx.arc(xP(mission.pStart), yDepth(mission.depth0), 4,0,Math.PI*2); profileCtx.fill();
-    profileCtx.fillStyle = 'rgba(232,250,255,.9)'; profileCtx.font='11px system-ui'; profileCtx.textAlign='left';
-    profileCtx.fillText('superficie', pad.l, 12);
-    profileCtx.fillText('fondo', pad.l, h-8);
-    profileCtx.textAlign='right';
-    profileCtx.fillText('gas', w-18, 26);
-    profileCtx.fillStyle = 'rgba(93,214,255,.92)';
-    profileCtx.fillText('agua', w-18, 42);
-    profileCtx.strokeStyle='rgba(200,240,255,.35)'; profileCtx.strokeRect(pad.l,pad.t,w-pad.l-pad.r,h-pad.t-pad.b);
-  }
-
-  function clearGraph(){
-    const w = graphCanvas.getBoundingClientRect().width || 700;
-    const h = graphCanvas.getBoundingClientRect().height || 260;
-    graphCtx.clearRect(0,0,w,h);
-    graphCtx.fillStyle = 'rgba(4,17,30,.75)'; graphCtx.fillRect(0,0,w,h);
-    graphCtx.fillStyle = 'rgba(180,220,235,.55)'; graphCtx.font = '14px system-ui'; graphCtx.textAlign = 'center';
-    graphCtx.fillText('La respuesta aparecerá al iniciar el ascenso.', w/2, h/2);
-  }
-
-  function drawGraph(data){
-    const w = graphCanvas.getBoundingClientRect().width || 700;
-    const h = graphCanvas.getBoundingClientRect().height || 260;
-    graphCtx.clearRect(0,0,w,h);
-    graphCtx.fillStyle = 'rgba(3,15,27,.95)'; graphCtx.fillRect(0,0,w,h);
-    if(!data || data.length < 2 || !mission){ clearGraph(); return; }
-    const pad = {l:54,r:46,t:22,b:42};
-    const tMax = Math.max(mission.timeMax+3, data[data.length-1].t, 10);
-    const xT = t => pad.l + t/tMax*(w-pad.l-pad.r);
-    const yDepth = d => pad.t + d/mission.depth0*(h-pad.t-pad.b);
-    const yPct = p => pad.t + (1-p)*(h-pad.t-pad.b);
-    graphCtx.strokeStyle = 'rgba(190,235,250,.14)'; graphCtx.lineWidth=1;
-    graphCtx.fillStyle = 'rgba(205,238,248,.65)'; graphCtx.font='11px ui-monospace, monospace'; graphCtx.textAlign='center';
-    for(let i=0;i<=5;i++){
-      const x = pad.l + i/5*(w-pad.l-pad.r);
-      graphCtx.beginPath(); graphCtx.moveTo(x,pad.t); graphCtx.lineTo(x,h-pad.b); graphCtx.stroke();
-      graphCtx.fillText(fmt(tMax*i/5,0),x,h-18);
-    }
-    graphCtx.textAlign='right';
-    for(let i=0;i<=4;i++){
-      const y = pad.t + i/4*(h-pad.t-pad.b);
-      graphCtx.beginPath(); graphCtx.moveTo(pad.l,y); graphCtx.lineTo(w-pad.r,y); graphCtx.stroke();
-      graphCtx.fillText(fmt(mission.depth0*i/4,0),pad.l-8,y+4);
-    }
-    // time window
-    graphCtx.fillStyle='rgba(255,209,102,.08)';
-    const wx1=xT(mission.timeMin), wx2=xT(mission.timeMax);
-    graphCtx.fillRect(wx1,pad.t,wx2-wx1,h-pad.t-pad.b);
-    graphCtx.strokeStyle='rgba(255,209,102,.35)';
-    graphCtx.strokeRect(wx1,pad.t,wx2-wx1,h-pad.t-pad.b);
-
-    // depth line
-    graphCtx.strokeStyle='#5dd6ff'; graphCtx.lineWidth=3; graphCtx.beginPath();
-    data.forEach((p,i)=>{ const x=xT(p.t), y=yDepth(p.depth); if(i===0) graphCtx.moveTo(x,y); else graphCtx.lineTo(x,y); }); graphCtx.stroke();
-    // water pct line
-    graphCtx.strokeStyle='#8ef7c7'; graphCtx.lineWidth=2; graphCtx.beginPath();
-    data.forEach((p,i)=>{ const x=xT(p.t), y=yPct(p.water/mission.waterInitial); if(i===0) graphCtx.moveTo(x,y); else graphCtx.lineTo(x,y); }); graphCtx.stroke();
-    // pressure pct line normalized between pMin and pStart
-    const pSpan = Math.max(0.1, mission.pStart - 1);
-    graphCtx.strokeStyle='#ffd166'; graphCtx.lineWidth=2; graphCtx.beginPath();
-    data.forEach((p,i)=>{ const frac=clamp((p.pgas-1)/pSpan,0,1); const x=xT(p.t), y=yPct(frac); if(i===0) graphCtx.moveTo(x,y); else graphCtx.lineTo(x,y); }); graphCtx.stroke();
-
-    graphCtx.strokeStyle='rgba(210,245,255,.32)'; graphCtx.strokeRect(pad.l,pad.t,w-pad.l-pad.r,h-pad.t-pad.b);
-    graphCtx.fillStyle='rgba(220,245,255,.75)'; graphCtx.font='12px system-ui';
-    graphCtx.textAlign='center'; graphCtx.fillText('tiempo (s)', w/2, h-6);
-    graphCtx.save(); graphCtx.translate(16,h/2); graphCtx.rotate(-Math.PI/2); graphCtx.fillText('profundidad (m)',0,0); graphCtx.restore();
-    graphCtx.textAlign='right'; graphCtx.fillText('% / presión relativa', w-8, 16);
-  }
-
-  function playImpact(){
-    if(!soundOn) return;
-    const AC = window.AudioContext || window.webkitAudioContext;
-    if(!AC) return;
-    const ctx = new AC();
-    const now = ctx.currentTime;
-    const master = ctx.createGain(); master.connect(ctx.destination); master.gain.value = 0.18;
-    const osc = ctx.createOscillator(); const gain = ctx.createGain();
-    osc.type='sawtooth'; osc.frequency.setValueAtTime(95,now); osc.frequency.exponentialRampToValueAtTime(35,now+.38);
-    gain.gain.setValueAtTime(0.8,now); gain.gain.exponentialRampToValueAtTime(0.001,now+.45);
-    osc.connect(gain); gain.connect(master); osc.start(now); osc.stop(now+.5);
-    const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate*.22, ctx.sampleRate);
-    const data = noiseBuffer.getChannelData(0);
-    for(let i=0;i<data.length;i++) data[i]=(Math.random()*2-1)*(1-i/data.length);
-    const noise = ctx.createBufferSource(); noise.buffer=noiseBuffer;
-    const nf = ctx.createBiquadFilter(); nf.type='lowpass'; nf.frequency.value=450;
-    const ng = ctx.createGain(); ng.gain.setValueAtTime(.7,now); ng.gain.exponentialRampToValueAtTime(.001,now+.23);
-    noise.connect(nf); nf.connect(ng); ng.connect(master); noise.start(now); noise.stop(now+.24);
-    setTimeout(()=>ctx.close(),900);
-  }
-
-  function playGood(){
-    if(!soundOn) return;
-    const AC = window.AudioContext || window.webkitAudioContext;
-    if(!AC) return;
-    const ctx = new AC();
-    const now = ctx.currentTime;
-    const master = ctx.createGain(); master.connect(ctx.destination); master.gain.value = 0.15;
-    [392,523,659].forEach((f,i)=>{
-      const osc=ctx.createOscillator(); const g=ctx.createGain();
-      osc.type='sine'; osc.frequency.value=f;
-      g.gain.setValueAtTime(0.001,now+i*.09);
-      g.gain.linearRampToValueAtTime(.65,now+i*.09+.025);
-      g.gain.exponentialRampToValueAtTime(.001,now+i*.09+.28);
-      osc.connect(g); g.connect(master); osc.start(now+i*.09); osc.stop(now+i*.09+.32);
+    $('bank-count').textContent=String(BANK.length);
+    $('start-btn').addEventListener('click',launch);
+    $('again-btn').addEventListener('click',resetForNewAttempt);
+    $('pdf-btn').addEventListener('click',downloadReportPdf);
+    $('print-btn').addEventListener('click',()=>window.print());
+    $('prev-btn').addEventListener('click',()=>moveTo(attempt.idx-1));
+    $('next-btn').addEventListener('click',()=>moveTo(attempt.idx+1));
+    $('finish-btn').addEventListener('click',askFinish);
+    $('cancel-finish').addEventListener('click',hideConfirm);
+    $('confirm-finish').addEventListener('click',()=>finish('manual'));
+    $('toggle-review').addEventListener('click',()=>{
+      const arr=[...document.querySelectorAll('details.review-item')],expand=arr.some(x=>!x.open);
+      arr.forEach(x=>x.open=expand);
+      $('toggle-review').textContent=expand?'Contraer todas':'Expandir todas';
     });
-    setTimeout(()=>ctx.close(),900);
-  }
-
-  el.decBig.addEventListener('click',()=>adjustPressure(-0.20));
-  el.decSmall.addEventListener('click',()=>adjustPressure(-0.05));
-  el.incSmall.addEventListener('click',()=>adjustPressure(0.05));
-  el.incBig.addEventListener('click',()=>adjustPressure(0.20));
-  el.startBtn.addEventListener('click',start);
-  el.retryBtn.addEventListener('click',resetSameMission);
-  el.newBtn.addEventListener('click',newMission);
-  el.soundBtn.addEventListener('click',()=>{ soundOn=!soundOn; el.soundBtn.textContent = `Sonido: ${soundOn?'encendido':'apagado'}`; });
-
-  window.addEventListener('keydown',(e)=>{
-    if(!mission || running) return;
-    if(e.key === 'ArrowLeft'){ e.preventDefault(); adjustPressure(-0.20); }
-    if(e.key === 'ArrowRight'){ e.preventDefault(); adjustPressure(0.20); }
-    if(e.key === 'ArrowDown'){ e.preventDefault(); adjustPressure(-0.05); }
-    if(e.key === 'ArrowUp'){ e.preventDefault(); adjustPressure(0.05); }
-    if(e.key === 'Enter'){ e.preventDefault(); start(); }
-  });
-
-  let dragging = false;
-  function setFromPointer(ev){
-    if(!mission || running) return;
-    const rect = el.knob.getBoundingClientRect();
-    const cx = rect.left + rect.width/2;
-    const cy = rect.top + rect.height/2;
-    const dx = ev.clientX - cx;
-    const dy = ev.clientY - cy;
-    let deg = Math.atan2(dy,dx)*180/Math.PI + 90;
-    if(deg < -180) deg += 360;
-    // Map usable arc from -135 to +135 degrees.
-    let clamped = clamp(deg, -135, 135);
-    const frac = (clamped + 135)/270;
-    pFinal = mission.pMin + frac*(mission.pMax-mission.pMin);
-    pFinal = Math.round(pFinal*100)/100;
-    updatePressureUI();
-    drawAll();
-  }
-  el.knob.addEventListener('pointerdown',(ev)=>{ dragging=true; el.knob.setPointerCapture(ev.pointerId); setFromPointer(ev); });
-  el.knob.addEventListener('pointermove',(ev)=>{ if(dragging) setFromPointer(ev); });
-  el.knob.addEventListener('pointerup',()=>{ dragging=false; });
-  el.knob.addEventListener('pointercancel',()=>{ dragging=false; });
-
-  if(!CanvasRenderingContext2D.prototype.roundRect){
-    CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r){
-      r = Math.min(r, w/2, h/2);
-      this.beginPath(); this.moveTo(x+r,y); this.arcTo(x+w,y,x+w,y+h,r); this.arcTo(x+w,y+h,x,y+h,r); this.arcTo(x,y+h,x,y,r); this.arcTo(x,y,x+w,y,r); this.closePath(); return this;
-    };
-  }
-
-  window.addEventListener('resize',resizeAll);
-  resizeAll();
-  newMission();
-})();
-</script>
+    document.addEventListener('keydown',e=>{
+      if(e.altKey||e.ctrlKey||e.metaKey||!attempt||attempt.finished)return;
+      if(modalShown){if(e.key==='Escape')hideConfirm();return;}
+      if(e.target.closest('input,textarea,select'))return;
+      const k=e.key.toUpperCase();
+      if('ABCD'.includes(k)&&k.length===1){e.preventDefault();selectOption('ABCD'.indexOf(k));}
+      else if(e.key==='ArrowRight'){e.preventDefault();moveTo(attempt.idx+1);}
+      else if(e.key==='ArrowLeft'){e.preventDefault();moveTo(attempt.idx-1);}
+    });
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden)updateTimer();});
+    attempt=load();
+    if(!attempt){show('welcome');}
+    else if(attempt.finished){renderResults();}
+    else if(Date.now()>=attempt.deadline){finish('time');}
+    else{show('exam');renderQuestion();startTimer();}
+  </script>
 </body>
 </html>
